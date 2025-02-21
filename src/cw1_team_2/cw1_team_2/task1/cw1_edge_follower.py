@@ -121,9 +121,12 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         points = [np.array([point.x, point.y]) for point in msg.points]
         
         # Create edges by connecting adjacent points
-        self.current_edges = []
         for i in range(len(points) - 1):
-            self.current_edges.append((points[i], points[i+1]))  # (start_point, end_point)
+            edge = (points[i], points[i+1]) # (start_point, end_point)
+            if len(self.current_edges) > 0:
+                if (tuple(edge[0]), tuple(edge[1])) in [(tuple(e[0]), tuple(e[1])) for e in self.current_edges]:
+                    continue
+            self.current_edges.append(edge)
 
     def find_next_waypoint(self):
         """Find closest edge and calculate next waypoint"""
@@ -399,6 +402,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             edge_marker.points.append(Point(x=float(end_point[0]), y=float(end_point[1]), z=0.0))
             
         self.edge_marker_pub.publish(edge_marker)
+        self.current_edges = []  # Clear edges
 
     def timer_callback(self):
         """Main control loop"""
