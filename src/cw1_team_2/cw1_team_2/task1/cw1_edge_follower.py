@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# ros2 topic pub /waypoint geometry_msgs/Pose2D "{x: 0.0, y: 1.3, theta: 0.0}" -r 1
-# ros2 topic pub /waypoint geometry_msgs/Pose2D "{x: 0.5, y: 1.0, theta: 3.14}" -r 1
+# ros2 topic pub /waypoint geometry_msgs/Pose2D "{x: -0.8, y: 1.1, theta: 0.0}" -r 1
+# ros2 topic pub /waypoint geometry_msgs/Pose2D "{x: 0.5, y: 1.1, theta: 3.14}" -r 1
 # ros2 run cw1_team_2 advanced_edge_follower 
 
 
@@ -14,6 +14,7 @@ from geometry_msgs.msg import Pose2D, Point, Vector3
 from visualization_msgs.msg import Marker
 from std_msgs.msg import ColorRGBA
 from edge_follower.edge_follower_node import EdgeFollowerNode
+from tf_transformations import quaternion_from_euler
 
 # import debugpy
 
@@ -26,10 +27,13 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         # 
         self.reached_line_end = False
 
+        # Feature: no need for cross product (seems doesn't work well)
+        self.moving_forward = "counter-clockwise" # "clockwise" or "counter-clockwise"
+        
         # Constants
-        self.SAFETY_MARGIN = 0.6  # meters
-        self.INCREMENT_DISTANCE = 0.5 # meters 0.7
-        self.UPDATE_RATE = 1.0  # seconds 0.5
+        self.SAFETY_MARGIN = 0.8  # meters
+        self.INCREMENT_DISTANCE = 0.7 # meters 0.7
+        self.UPDATE_RATE = 0.5  # seconds 0.5
         self.OVERSHOOT = 0.3  # meters
         
         # State variables
@@ -84,12 +88,13 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         # Transform point
         x = point[0] * c - point[1] * s + self.current_x
         y = point[0] * s + point[1] * c + self.current_y
+        theta = point[2] + self.current_orientation
         
-        self.get_logger().info(f"Current Point: {self.current_x:.2f}, {self.current_y:.2f}")
-        self.get_logger().info(f"Goal Point: {x:.2f}, {y:.2f}")
+        self.get_logger().info(f"Current Pose: {self.current_x:.2f}, {self.current_y:.2f}, {self.current_orientation:.2f}")
+        self.get_logger().info(f"Goal Pose: {x:.2f}, {y:.2f}, {theta:.2f}")
         self.get_logger().info(f"Distance Diff: {np.linalg.norm(np.array([x, y]) - np.array([self.current_x, self.current_y])):.2f}")
 
-        return np.array([x, y])
+        return np.array([x, y, theta])
 
     def transform_to_base_link(self, point):
         """Transform a point from camera_init to livox frame"""
@@ -118,7 +123,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         # Create edges by connecting adjacent points
         self.current_edges = []
         for i in range(len(points) - 1):
-            self.current_edges.append((points[i], points[i+1]))
+            self.current_edges.append((points[i], points[i+1]))  # (start_point, end_point)
 
     def find_next_waypoint(self):
         """Find closest edge and calculate next waypoint"""
@@ -154,7 +159,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
                 
             # Normalize edge vector
             edge_direction = edge_vector / edge_length
-            
+
             # Vector from start point to robot
             to_robot = robot_pos - start_point
             
@@ -186,26 +191,26 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         # Vector from closest point to robot
         to_robot = robot_pos - closest_point
         
-        # Determine cw direction using cross product 
-        cross_z = edge_direction[0] * to_robot[1] - edge_direction[1] * to_robot[0]
-        moving_forward = cross_z > 0  # clockwise
-        # moving_forward = cross_z < 0    # counter clockwise (wrong thing)
+        # Determine cw direction using cross product (NO, CROSS PRODUCT IS USELESS)
+        moving_forward = self.moving_forward
+        # cross_z = edge_direction[0] * to_robot[1] - edge_direction[1] * to_robot[0]
+        # # moving_forward = cross_z > 0  
+        # moving_forward = cross_z < 0  # Feature: change to counter-clockwise
         
         # Move along edges to find increment point
         current_index = closest_edge_index
         increment_left = self.INCREMENT_DISTANCE
         current_point = closest_point
         
-        if moving_forward:
+        if moving_forward == "clockwise":
 
             while increment_left > 0 and current_index < len(self.current_edges):
 
                 current_edge = self.current_edges[current_index]
-                
 
                 start, end = current_edge
                 remaining_distance = np.linalg.norm(end - current_point)
-                self.get_logger().info("---------- MOVING FORWARD ----------")
+                self.get_logger().info("---------- MOVING CLOCKWISE ----------")
                 self.get_logger().info(f"current edge {current_index} out of {len(self.current_edges)}")
                 
                 if increment_left <= remaining_distance:
@@ -235,26 +240,29 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
                         self.get_logger().info(f"\033[94mSetting waypoint as the end of the line ({current_index}out of{len(self.current_edges)})\033[0m")
                         break
                 
-        else:
+        elif moving_forward == "counter-clockwise":
             
             while increment_left > 0 and current_index >= 0:
                 current_edge = self.current_edges[current_index]
                 start, end = current_edge
                 remaining_distance = np.linalg.norm(current_point - start)
-                self.get_logger().info("---------- MOVING BACKWARD ----------")
-                self.get_logger().info(f" total number of current_edges: {len(self.current_edges)}, current_index: {current_index}")
-                self.get_logger().info(f"increment_left: {increment_left}, remaining_distance: {remaining_distance}")
+                self.get_logger().info("---------- MOVING COUNTER-CLOCKWISE ----------")
+                self.get_logger().info(f"current edge {current_index} out of {len(self.current_edges)}")
                 
                 if increment_left <= remaining_distance:
                     # We can reach our point on this edge
+                    self.get_logger().info("\033[92m### Keep moving on the same edge ###\033[0m")
+                    self.get_logger().info(f"\033[92mincrement_left: {increment_left:.2f}, remaining_distance: {remaining_distance:.2f}\033[0m")
                     edge_direction = (end - start) / np.linalg.norm(end - start)
                     current_point = current_point - edge_direction * increment_left
                     break
                 else:
                     # Move to previous edge
-                    self.get_logger().info(f"move to previous edge {current_index-1} out of {len(self.current_edges)}")
+                    self.get_logger().info(f"\033[94m### move to previous edge ###\033[0m")
+                    self.get_logger().info(f"\033[94mcurrent edge {current_index+1} out of {len(self.current_edges)}\033[0m")
+                    self.get_logger().info(f"\033[94mincrement_left: {increment_left:.2f}, remaining_distance: {remaining_distance:.2f}\033[0m")
 
-                    increment_left -= remaining_distance
+                    increment_left -= np.linalg.norm(end - start)
                     current_index -= 1  
                     # Yeah I know, we don't need to increase current point here, don't worry
                     # once we increase the index, the waypoint will be calculated based on the new edge
@@ -264,10 +272,13 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
                         self.reached_line_end = True
                         current_index = 0
                         current_point = self.current_edges[current_index][0] #- edge_direction * self.OVERSHOOT
-                        
+
+                        self.get_logger().info(f"\033[94mSetting waypoint as the start of the line ({current_index}out of{len(self.current_edges)})\033[0m")
                         break
-        
-        
+        else:
+            self.get_logger().info("!!! Invalid moving direction !!!")
+            raise ValueError("Invalid moving direction")
+
         # Store the incremented point (green dot)
         if self.reached_line_end == True:
             # Feature: end-line "lag" => assure robot find new lines 
@@ -284,6 +295,10 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         edge_direction = (end - start) / np.linalg.norm(end - start)
         print(f"start: {start}, end: {end}")
         print(f"edge_direction: {edge_direction}")  # is a vector
+
+        # Calculate angle with respect to (0,0)
+        edge_angle = math.atan2(edge_direction[1], edge_direction[0])  # Feature: add edge direction to waypoint angle
+        print(f"edge_angle: {edge_angle}")
         
         # Calculate perpendicular vector (rotate edge_direction 90 degrees)
         perpendicular = np.array([-edge_direction[1], edge_direction[0]])
@@ -294,8 +309,18 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             perpendicular = -perpendicular  # Flip if needed to point toward robot's side
         
         # Calculate waypoint by projecting perpendicular to the edge
+        # # Feature: add edge direction to waypoint (x,y) ==> (x,y,theta)
         waypoint = self.incremented_point + perpendicular * self.SAFETY_MARGIN
+        
+        if moving_forward == "clockwise":
+            waypoint = np.array([waypoint[0], waypoint[1], edge_angle]) 
+        elif moving_forward == "counter-clockwise":
+            waypoint = np.array([waypoint[0], waypoint[1], edge_angle + math.pi]) # Feature: rotate 180 degrees in edge direction
+        else:
+            self.get_logger().info("Invalid moving direction !")
+            raise ValueError("Invalid moving direction")
 
+        # self.get_logger().info(f"Waypoint: {waypoint}")
         return waypoint
 
     def publish_visualizations(self, current_waypoint):
@@ -305,15 +330,21 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             point_marker = Marker()
             point_marker.header.frame_id = "livox"
             point_marker.header.stamp = self.get_clock().now().to_msg()
-            point_marker.type = Marker.SPHERE
+            point_marker.type = Marker.ARROW  # SPHERE
             point_marker.action = Marker.ADD
             point_marker.id = 0
             
             point_marker.pose.position.x = float(current_waypoint[0])
             point_marker.pose.position.y = float(current_waypoint[1])
-            point_marker.pose.position.z = 0.0
+            quaternion = quaternion_from_euler(0, 0, float(current_waypoint[2]))
+            point_marker.pose.orientation.x = quaternion[0]
+            point_marker.pose.orientation.y = quaternion[1]
+            point_marker.pose.orientation.z = quaternion[2]
+            point_marker.pose.orientation.w = quaternion[3]
             
-            point_marker.scale = Vector3(x=0.2, y=0.2, z=0.2)
+            point_marker.scale = Vector3(x=0.2, y=0.1, z=0.1)  # Arrow
+
+            # point_marker.scale = Vector3(x=0.2, y=0.2, z=0.2)
             point_marker.color = ColorRGBA(r=0.0, g=0.0, b=1.0, a=1.0)
             self.waypoint_marker_pub.publish(point_marker)
             
@@ -375,13 +406,16 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             return
         
         # Store last waypoint
-        self.last_waypoint = getattr(self, "current_waypoint", None) 
+        self.last_waypoint = getattr(self, "current_waypoint", None)   # waypoint dimension: [x, y, theta]
 
         # Calculate next waypoint
         next_waypoint = self.find_next_waypoint()
+        if next_waypoint is None:
+            print("!!!! No next waypoint !!!!")
+            return
 
         # Mitigate waypoints to avoid sharp turns (only if we have a last waypoint)
-        if self.reached_line_end:
+        if self.reached_line_end and next_waypoint is not None:
             next_waypoint = self.mitigate_waypoints(next_waypoint)
         
         # Update current waypoint
@@ -393,7 +427,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             waypoint_camera_init = self.transform_to_camera_init(next_waypoint)
             waypoint_msg.x = float(waypoint_camera_init[0])
             waypoint_msg.y = float(waypoint_camera_init[1])
-            waypoint_msg.theta = self.current_orientation  # Keep current orientation  # TODO: change this to the orientation of the edge
+            waypoint_msg.theta = float(waypoint_camera_init[2])  #  the orientation of the edge
             
             self.waypoint_pub.publish(waypoint_msg)
             

@@ -19,10 +19,17 @@ def generate_launch_description():
 
     # ros2 launch go2_config gazebo_mid360.launch.py
     gazebo_launch = IncludeLaunchDescription(
+        # PythonLaunchDescriptionSource(
+        #     os.path.join(
+        #         "/workspace/comp0244-go2/scripts",
+        #         "gazebo_mid360_cw1.launch.py"
+        #     )
+        # ),
         PythonLaunchDescriptionSource(
             os.path.join(
-                "/workspace/comp0244-go2/scripts",
-                "gazebo_mid360_cw1.launch.py"
+                get_package_share_directory("go2_config"),
+                'launch',
+                'gazebo_mid360.launch.py'
             )
         ),
         launch_arguments={'use_sim_time': use_sim_time,
