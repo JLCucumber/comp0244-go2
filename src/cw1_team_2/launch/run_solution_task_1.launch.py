@@ -67,8 +67,8 @@ def generate_launch_description():
 
     # ros2 run waypoint_follower waypoint_follower
     waypoint_follower_node = Node(
-        package='waypoint_follower',
-        executable='waypoint_follower',
+        package='cw1_team_2',
+        executable='cw1_waypoint_follower',
         output='screen',
         parameters=[{"use_sim_time": use_sim_time}]
     )

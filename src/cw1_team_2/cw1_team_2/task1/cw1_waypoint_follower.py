@@ -17,10 +17,10 @@ class CW1_WaypointFollower(WaypointFollower):
     """
 
     def __init__(self):
-        super().__init__('cw1_waypoint_follower')
+        super().__init__()
+        self.get_logger().info("Waypoint Follower node started. Waiting for waypoints...")
+        
 
-        # Target waypoint (x, y, theta)
-        # Initially, set them to 0. They will be updated by /waypoint subscriber.
         self.x_target = None
         self.y_target = None
         self.orientation_target = None
@@ -65,7 +65,7 @@ class CW1_WaypointFollower(WaypointFollower):
             10
         )
 
-        # Timer to periodically publish velocity commands
+        # Timer to periodically publish velocity commands 
         timer_period = 0.1  # [s] -> 10 Hz
         self.timer = self.create_timer(timer_period, self.control_loop_callback)
 
@@ -110,6 +110,8 @@ class CW1_WaypointFollower(WaypointFollower):
         """
         Periodic control loop callback. Computes PD control and publishes velocity commands.
         """
+        
+        # self.get_logger().info("Executing the UPDATED control loop!") 
         if not self.is_odom_received:
             return
         # 1) Compute errors
@@ -141,31 +143,50 @@ class CW1_WaypointFollower(WaypointFollower):
         # 6) Publish velocity commands
         twist_msg = Twist()
 
+        distance_to_target = math.hypot(error_x, error_y)
+
+        # 当目标距离较大时，同时调整方向和前进速度
+        if distance_to_target > 0.1:
+            twist_msg.linear.x = min(math.hypot(vx, vy), self.max_velo)  # 保持最大速度
+            twist_msg.angular.z = min(vtheta, self.max_velo)  # 持续调整方向
+            self.get_logger().info("Moving towards waypoint with steering adjustment")
+
+        # 当接近目标点时，单独调整朝向
+        else:
+            twist_msg.linear.x = 0.0  # 停止前进
+            if abs(error_orientation) > 0.05:
+                twist_msg.angular.z = min(vorientation, self.max_velo)
+                self.get_logger().info("Rotating to align with final orientation")
+            else:
+                self.get_logger().info("Arrived at waypoint") 
+
+
         # Before arriving to the waypoint, decide whether to rotate in place or move forward: 
         # If the robot is not heading to the waypoint (with a margin 0.1 rad) and
         # the  waypoint is far away (more than 0.1 m), the robot needs to rotate in place
         # else, once the rotation is completed, enter the next phase, moving forward until
         # the distance between the robot and the waypoint is less than 0.1m
-        if not self.is_arrive_waypoint:
-            if abs(error_theta)>0.1 and math.hypot(error_x, error_y)>0.1:
-                twist_msg.angular.z = min(vtheta, self.max_velo)
-                self.get_logger().info( f"rotate before moving forward" )
-            elif math.hypot(error_x, error_y)>0.1:
-                twist_msg.linear.x = min(math.hypot(vx,vy), self.max_velo)
-                twist_msg.angular.z = min(vtheta, self.max_velo)
-                self.get_logger().info( f"moving forward" )                      
-            else:
-                self.is_arrive_waypoint = True
-                # arrive the waypoint
-                pass
-        # After arriving to the waypoint, rotate in place to the target orientation: 
-        else:
-            if abs(error_orientation)>0.05:
-                twist_msg.angular.z = min(vorientation, self.max_velo)
-                self.get_logger().info( f"rotating to target orientation" )
-            else:
-                # arrive the target orientation
-                pass
+        # if not self.is_arrive_waypoint:
+        #     if abs(error_theta)>0.1 and math.hypot(error_x, error_y)>0.1:
+        #         twist_msg.angular.z = min(vtheta, self.max_velo)
+        #         self.get_logger().info( f"rotate before moving forward" )
+        #     elif math.hypot(error_x, error_y)>0.1:
+        #         twist_msg.linear.x = min(math.hypot(vx,vy), self.max_velo)
+        #         twist_msg.angular.z = min(vtheta, self.max_velo)
+        #         self.get_logger().info( f"moving forward" )                      
+        #     else:
+        #         self.is_arrive_waypoint = True
+        #         # arrive the waypoint
+        #         pass
+
+        # # After arriving to the waypoint, rotate in place to the target orientation: 
+        # else:
+        #     if abs(error_orientation)>0.05:
+        #         twist_msg.angular.z = min(vorientation, self.max_velo)
+        #         self.get_logger().info( f"rotating to target orientation" )
+        #     else:
+        #         # arrive the target orientation
+        #         pass
 
         self.cmd_vel_pub.publish(twist_msg)
 
@@ -182,15 +203,16 @@ class CW1_WaypointFollower(WaypointFollower):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = WaypointFollower()
+    node = CW1_WaypointFollower()
 
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         node.get_logger().info("Keyboard interrupt detected, shutting down.")
     finally:
-        node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():  # 仅在 ROS2 仍然运行时调用 shutdown
+            node.destroy_node()
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
