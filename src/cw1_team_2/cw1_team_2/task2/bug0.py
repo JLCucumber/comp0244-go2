@@ -125,9 +125,15 @@ class BugPlanner(Node):
         # Get Direction to the goal
         goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y]) 
         theta_livox = math.atan2(goal_livox[1], goal_livox[0])
-
+        Count = 0
         # Check if there is an obstacle in the way
-        while self.is_obstacle_detected(theta_livox, self.current_edges):
+        while True:
+            if not self.is_obstacle_detected(theta_livox, self.current_edges):
+                Count += 1
+                if Count == 100 or not self.timer.is_canceled():
+                    break
+            else:
+                Count = 0
             # pause the timer
             self.timer.cancel()
             rclpy.spin_once(self.edge_follower)
