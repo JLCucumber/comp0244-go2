@@ -5,8 +5,20 @@
 #     goal_theta: 0.0
 
 
+# /Bug0:
+#   ros__parameters:
+#     goal_x: -5.0
+#     goal_y: -5.0
+#     goal_theta: 0.0
+
+# /Bug0:
+#   ros__parameters:
+#     goal_x: -2.0
+#     goal_y: 5.0
+#     goal_theta: 0.0
+
 /Bug0:
   ros__parameters:
-    goal_x: -1.0
-    goal_y: -1.0
+    goal_x: 2.0
+    goal_y: -5.0
     goal_theta: 0.0
