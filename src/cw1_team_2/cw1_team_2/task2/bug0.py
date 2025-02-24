@@ -115,7 +115,7 @@ class BugPlanner(Node):
         for i in range(len(rect)):
             rect_edges.append(np.array([rect[i], rect[(i+1)%4]]))
         if self.is_edge_crossed(current_edges, rect_edges):
-            self.get_logger().info("Edge Detected")
+            # self.get_logger().info("Edge Detected")
             return True
         else :
             # self.get_logger().info("No Edge Detected")
@@ -126,11 +126,19 @@ class BugPlanner(Node):
         goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y]) 
         theta_livox = math.atan2(goal_livox[1], goal_livox[0])
 
-        # TODO: Check if there is an obstacle in the way
-        if self.is_obstacle_detected(theta_livox, self.current_edges):
+        # Check if there is an obstacle in the way
+        while self.is_obstacle_detected(theta_livox, self.current_edges):
+            # pause the timer
+            self.timer.cancel()
             rclpy.spin_once(self.edge_follower)
-            return
+            self.update_data()
+            goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y])
+            theta_livox = math.atan2(goal_livox[1], goal_livox[0])
             
+        if self.timer.is_canceled():
+            self.get_logger().info("Obstacle Cleared") # TODO: Unexpected Triggering Timer Reset Which means the timer is not paused
+            self.timer.reset()
+
         # Move towards the goal with self.WAYPOINT_DISTANCE
         next_waypoint = [self.WAYPOINT_DISTANCE*math.cos(theta_livox), self.WAYPOINT_DISTANCE*math.sin(theta_livox),theta_livox]
         self.edge_follower.publish_visualizations(next_waypoint)
