@@ -26,6 +26,7 @@ class CW1_WaypointFollower(WaypointFollower):
         self.orientation_target = None
 
         self.max_velo = 0.5
+        self.max_angle_velo = 1.0
 
         # PD Controller Gains (tune as necessary)
         self.Kp_linear = 10.0
@@ -108,12 +109,17 @@ class CW1_WaypointFollower(WaypointFollower):
 
     def control_loop_callback(self):
         """
-        Periodic control loop callback. Computes PD control and publishes velocity commands.
+        处理控制逻辑，包括：
+        1. 计算误差
+        2. 执行 PD 控制
+        3. 处理特殊情况（后退 & 横移）
+        4. 发送控制指令
         """
         
         # self.get_logger().info("Executing the UPDATED control loop!") 
         if not self.is_odom_received:
             return
+
         # 1) Compute errors
         error_x = self.x_target - self.current_x
         error_y = self.y_target - self.current_y
@@ -140,25 +146,46 @@ class CW1_WaypointFollower(WaypointFollower):
         self.prev_error_theta = error_theta
         self.prev_error_orientation = error_orientation
 
-        # 6) Publish velocity commands
+        
+        
+        # 6)  计算目标相对于机器人前进方向的角度（范围[-pi, pi]）
+        target_angle = math.atan2(error_y, error_x)
+        relative_angle = self.normalize_angle(target_angle - self.current_orientation)
+
+        # 7) Publish velocity commands
         twist_msg = Twist()
 
         distance_to_target = math.hypot(error_x, error_y)
 
-        # 当目标距离较大时，同时调整方向和前进速度
-        if distance_to_target > 0.1:
+        #  处理特殊情况 
+        # 1️ 后退情况：目标在机器人后方，且方向相同（error_theta 接近 0）
+        if abs(relative_angle) > math.pi * 0.9:
+            twist_msg.linear.x = -min(math.hypot(vx, vy), self.max_velo)  # 直接后退
+            twist_msg.angular.z = 0.0  # 方向不变
+            self.get_logger().info("Moving Backward")
+        
+        # 2️  横向移动情况 ：目标在机器人侧方（90 度左右）
+        elif abs(relative_angle - math.pi / 2) < 0.3 or abs(relative_angle + math.pi / 2) < 0.3:
+            twist_msg.linear.y = min(abs(vy), self.max_velo) * (1 if relative_angle > 0 else -1)
+            twist_msg.linear.x = 0.0  # 不前进
+            twist_msg.angular.z = 0.0  # 不旋转
+            self.get_logger().info("Moving Sideways")
+        
+        # 3️  正常行走逻辑 
+        elif distance_to_target > 0.1:
             twist_msg.linear.x = min(math.hypot(vx, vy), self.max_velo)  # 保持最大速度
             twist_msg.angular.z = min(vtheta, self.max_velo)  # 持续调整方向
-            self.get_logger().info("Moving towards waypoint with steering adjustment")
+            self.get_logger().info("Moving towards waypoint")
 
-        # 当接近目标点时，单独调整朝向
+        # 4 接近目标时，单独调整方向 
         else:
             twist_msg.linear.x = 0.0  # 停止前进
             if abs(error_orientation) > 0.05:
                 twist_msg.angular.z = min(vorientation, self.max_velo)
-                self.get_logger().info("Rotating to align with final orientation")
+                self.get_logger().info(" Rotating to align with final orientation")
             else:
-                self.get_logger().info("Arrived at waypoint") 
+                self.get_logger().info(" Arrived at waypoint")
+        
 
 
         # Before arriving to the waypoint, decide whether to rotate in place or move forward: 
