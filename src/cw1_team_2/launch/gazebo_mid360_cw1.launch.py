@@ -35,9 +35,9 @@ def generate_launch_description():
     links_config = os.path.join(config_pkg_share, "config/links/links.yaml")
     default_model_path = os.path.join(descr_pkg_share, "xacro/robot_mid360.xacro")
 
-
     gazebo_world = LaunchConfiguration("gazebo_world")
     default_world_path = os.path.join(f"/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_{gazebo_world}.world")
+
 
 
     declare_use_sim_time = DeclareLaunchArgument(
