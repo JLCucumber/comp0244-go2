@@ -23,7 +23,8 @@ setup(
     entry_points={
         'console_scripts': [
             'cw1_edge_follower = cw1_team_2.task1.cw1_edge_follower:main',
-            'cw1_waypoint_follower = cw1_team_2.task1.cw1_waypoint_follower:main',            
+            'cw1_waypoint_follower = cw1_team_2.task1.cw1_waypoint_follower:main', 
+            'cw1_bug0 = cw1_team_2.task2.bug0:main',           
         ],
     },
 )
