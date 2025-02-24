@@ -20,7 +20,7 @@ class BugPlanner(Node):
 
         # Constants
         self.UPDATE_RATE = 0.1  # [s]
-        self.WAYPOINT_DISTANCE = 0.  # [m]
+        self.WAYPOINT_DISTANCE = 0.2  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
         self.OBSTACLE_DISTANCE = 1.0  # [m]
 
@@ -130,6 +130,7 @@ class BugPlanner(Node):
         if self.is_obstacle_detected(theta_livox, self.current_edges):
             rclpy.spin_once(self.edge_follower)
             return
+            
         # Move towards the goal with self.WAYPOINT_DISTANCE
         next_waypoint = [self.WAYPOINT_DISTANCE*math.cos(theta_livox), self.WAYPOINT_DISTANCE*math.sin(theta_livox),theta_livox]
         self.edge_follower.publish_visualizations(next_waypoint)
