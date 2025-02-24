@@ -46,6 +46,9 @@
 
 ## Task 1
 
+> Update: Now you can simply run 'ros2 launch cw1_team_2 environment_set_up.launch.py' to launch RViz and Gazebo
+> To launch specific tasks, you can include 'environment_set_up.launch.py' into your launch file
+
 1. 回到 `/workspace/comp0244-go2` 
 2. 每次启动终端自动加载humble环境变量  `echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc` 
 3. 编译 ros2 环境
