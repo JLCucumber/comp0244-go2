@@ -6,7 +6,7 @@ from cw1_team_2.task1.cw1_edge_follower import AdvancedEdgeFollowerNodes
 from geometry_msgs.msg import Pose2D
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
-from .utils import is_intersected
+from ..utils.utils import is_intersected
 class BugPlanner(Node):
     def __init__(self, name):
         super().__init__(name)
@@ -110,7 +110,7 @@ class BugPlanner(Node):
             theta_livox = math.atan2(goal_livox[1], goal_livox[0])
             
         if self.timer.is_canceled():
-            self.get_logger().info("Obstacle Cleared") # TODO: Unexpected Triggering Timer Reset Which means the timer is not paused
+            self.get_logger().info("Obstacle Cleared") 
             self.timer.reset()
 
         # Move towards the goal with self.WAYPOINT_DISTANCE
