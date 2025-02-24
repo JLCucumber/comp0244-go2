@@ -163,6 +163,7 @@ class BugPlanner(Node):
         if self.NEW_GOAL:
             self.move_to_goal()
 
+
     
 def main(args=None):
     rclpy.init(args=args)
