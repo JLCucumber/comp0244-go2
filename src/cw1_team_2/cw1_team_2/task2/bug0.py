@@ -20,7 +20,7 @@ class BugPlanner(Node):
 
         # Constants
         self.UPDATE_RATE = 0.1  # [s]
-        self.WAYPOINT_DISTANCE = 0.2  # [m]
+        self.WAYPOINT_DISTANCE = 0.  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
         self.OBSTACLE_DISTANCE = 1.0  # [m]
 
@@ -141,10 +141,8 @@ class BugPlanner(Node):
         self.waypoint_pub.publish(waypoint_msg)
         return
 
-    def timer_callback(self):
-        """Main loop of the bug0 planner"""
-        if not self.edge_follower.is_odom_received:
-            return
+    def update_data(self):
+        """Update the current position of the robot"""
         # Get the current position of the robot
         self.current_x = self.edge_follower.current_x
         self.current_y = self.edge_follower.current_y
@@ -162,6 +160,16 @@ class BugPlanner(Node):
 
         # Get Current Edges
         self.current_edges = self.edge_follower.current_edges
+
+        return
+    
+    def timer_callback(self):
+        """Main loop of the bug0 planner"""
+        if not self.edge_follower.is_odom_received:
+            return
+        
+        # Update Data
+        self.update_data()
 
         # Check if the goal is reached
         if self.is_goal_reached():
