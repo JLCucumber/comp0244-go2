@@ -1,3 +1,4 @@
+
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, TimerAction
 from launch.substitutions import LaunchConfiguration
@@ -5,6 +6,50 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node
 import os
+
+# def generate_launch_description():
+#     # Declare the use_sim_time argument
+#     declare_use_sim_time = DeclareLaunchArgument(
+#         'use_sim_time',
+#         default_value='true',  # Default to true for simulation time
+#         description='Use simulation (Gazebo) clock if true'
+#     )
+
+#     # Get the use_sim_time configuration to pass to nodes and included launch files
+#     use_sim_time = LaunchConfiguration("use_sim_time")
+
+#     # Include environment_setup.launch.py
+#     environment_setup_launch = IncludeLaunchDescription(
+#         PythonLaunchDescriptionSource(
+#             os.path.join(
+#                 get_package_share_directory('cw1_team_2'),
+#                 'launch',
+#                 'environment_setup.launch.py'
+#             )
+#         ),
+#         launch_arguments={'use_sim_time': use_sim_time}.items()
+#     )
+
+
+#     bug0_node = Node(
+#         package='cw1_team_2',
+#         executable='cw1_bug0',
+#         output='screen',
+#         parameters=[{
+#             "use_sim_time": use_sim_time
+#         }]
+#     )
+
+#     bug0_group = GroupAction([
+#         bug0_node
+#     ])
+
+
+#     return LaunchDescription([
+#         declare_use_sim_time,
+#         environment_setup_launch,
+#         bug0_group
+#     ])
 
 def generate_launch_description():
     # Declare the use_sim_time argument

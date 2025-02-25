@@ -152,7 +152,6 @@ class CW1_WaypointFollower(WaypointFollower):
 
         # 7) Publish velocity commands
         twist_msg = Twist()
-
         distance_to_target = math.hypot(error_x, error_y)
 
         #  处理特殊情况 
@@ -162,17 +161,17 @@ class CW1_WaypointFollower(WaypointFollower):
             twist_msg.angular.z = 0.0  # 方向不变
             #self.get_logger().info("Moving Backward")
         
-        # # 2️  横向移动情况 ：目标在机器人侧方（90 度左右）
-        # elif abs(relative_angle - math.pi / 2) < 0.3 or abs(relative_angle + math.pi / 2) < 0.3 and distance_to_target < 0.1:
-        #     twist_msg.linear.y = min(abs(vy), self.max_velo) * (1 if relative_angle > 0 else -1)
-        #     twist_msg.linear.x = 0.0  # 不前进
-        #     twist_msg.angular.z = 0.0  # 不旋转
-        #     self.get_logger().info("Moving Sideways")
+        # 2️  urgent turn
+        elif  abs(relative_angle) > math.pi * 0.4 and 0.1 < distance_to_target < 0.5:
+            twist_msg.linear.x = 0.1  # 前进 a little
+            twist_msg.linear.y = 0.0  # 不前进
+            twist_msg.angular.z = min(vorientation, self.max_velo)  # fast 旋转
+            self.get_logger().info("Urgent Turn")
         
         # 3️  正常行走逻辑 
         elif distance_to_target > 0.1:
             twist_msg.linear.x = min(math.hypot(vx, vy), self.max_velo)  # 保持最大速度
-            twist_msg.angular.z = min(vtheta, self.max_velo)  # 持续调整方向
+            twist_msg.angular.z = min(vtheta, self.max_angle_velo)  # 持续调整方向
             #self.get_logger().info("Moving towards waypoint")
 
         # 4 接近目标时，单独调整方向 

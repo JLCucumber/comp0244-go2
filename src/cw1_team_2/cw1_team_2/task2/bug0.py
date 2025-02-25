@@ -21,7 +21,7 @@ class BugPlanner(Node):
 
         # Constants
         self.UPDATE_RATE = 0.2  # [s]
-        self.WAYPOINT_DISTANCE = 0.2  # [m]
+        self.WAYPOINT_DISTANCE = 0.3  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
         self.OBSTACLE_DISTANCE = 1.5  # [m]
 
@@ -113,10 +113,14 @@ class BugPlanner(Node):
             self.update_data()
             goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y])
             theta_livox = math.atan2(goal_livox[1], goal_livox[0])
+            self.get_logger().info("Clear out last closest point")
+            self.edge_follower.last_closest_point = None
             
         if self.timer.is_canceled():
             self.get_logger().info("Obstacle Cleared") 
             self.timer.reset()
+            
+            # self.edge_follower.last_closest_edge = None
 
         # Move towards the goal with self.WAYPOINT_DISTANCE
         next_waypoint = [self.WAYPOINT_DISTANCE*math.cos(theta_livox), self.WAYPOINT_DISTANCE*math.sin(theta_livox),theta_livox]

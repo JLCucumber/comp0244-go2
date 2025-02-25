@@ -34,9 +34,7 @@ def generate_launch_description():
     gait_config = os.path.join(config_pkg_share, "config/gait/gait.yaml")
     links_config = os.path.join(config_pkg_share, "config/links/links.yaml")
     default_model_path = os.path.join(descr_pkg_share, "xacro/robot_mid360.xacro")
-    # default_world_path = os.path.join(config_pkg_share, "/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_world_edition.world")
-    default_world_path = os.path.join(config_pkg_share, "/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_world_edition_1.world")
-    # default_world_path = os.path.join(config_pkg_share, "/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_world_edition_2.world")
+    default_world_path = os.path.join(config_pkg_share, "/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_world_4.world")
 
 
     declare_use_sim_time = DeclareLaunchArgument(

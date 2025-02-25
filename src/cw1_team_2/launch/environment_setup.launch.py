@@ -30,7 +30,6 @@ def generate_launch_description():
 
     # Get the use_sim_time configuration to pass to nodes and included launch files
     use_sim_time = LaunchConfiguration("use_sim_time")
-
     # ros2 launch go2_config gazebo_mid360.launch.py
     gazebo_launch = IncludeLaunchDescription(
         # PythonLaunchDescriptionSource("gazebo_mid360_cw1.launch.py"),
