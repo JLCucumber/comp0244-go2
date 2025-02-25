@@ -30,6 +30,8 @@ def generate_launch_description():
 
     # Get the use_sim_time configuration to pass to nodes and included launch files
     use_sim_time = LaunchConfiguration("use_sim_time")
+    gazebo_world = LaunchConfiguration("gazebo_world")
+
     # ros2 launch go2_config gazebo_mid360.launch.py
     gazebo_launch = IncludeLaunchDescription(
         # PythonLaunchDescriptionSource("gazebo_mid360_cw1.launch.py"),
@@ -42,6 +44,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={'use_sim_time': use_sim_time,
+                          'gazebo_world': gazebo_world,
                         # 'world_init_x': '-1.0',    # 你想要的新默认值
                         # 'world_init_y': '-3.0',
                         # 'world_init_z': '0.5',
