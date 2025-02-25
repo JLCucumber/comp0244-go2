@@ -6,7 +6,7 @@ from cw1_team_2.task1.cw1_edge_follower import AdvancedEdgeFollowerNodes
 from geometry_msgs.msg import Pose2D
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
-from cw1_team_2.utils.utils import is_intersected
+from cw1_team_2.utils.utils import is_intersected, get_rect_marker
 
 class BugPlanner(Node):
     def __init__(self, name):
@@ -24,7 +24,7 @@ class BugPlanner(Node):
         self.WAYPOINT_DISTANCE = 0.2  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
         self.OBSTACLE_DISTANCE = 1.5  # [m]
-        self.STARTPOINT_TOLERANCE = 0.5 # [m]
+        self.STARTPOINT_TOLERANCE = 0.8 # [m]
 
         # Variables
         self.current_x = 0.0
@@ -84,6 +84,11 @@ class BugPlanner(Node):
         rect[1] = [rect[0][0] + self.OBSTACLE_DISTANCE*math.cos(theta_livox), rect[0][1] + self.OBSTACLE_DISTANCE*math.sin(theta_livox)]
         rect[2] = [rect[1][0] + rectange_width*math.cos(theta_livox - np.pi/2), rect[1][1] + rectange_width*math.sin(theta_livox - np.pi/2)]
         rect[3] = [rect[2][0] + self.OBSTACLE_DISTANCE*math.cos(theta_livox + np.pi), rect[2][1] + self.OBSTACLE_DISTANCE*math.sin(theta_livox + np.pi)]      
+        
+        # Publish the rectangle
+        rect_msg = get_rect_marker(rect, self.get_clock().now().to_msg())
+        self.rect_pub.publish(rect_msg)
+
         # Check if the edge crosses the rectangle
         rect_edges = []
         for i in range(len(rect)):
@@ -115,7 +120,7 @@ class BugPlanner(Node):
                 break
             
             # Check if the loop is finished and the robot is close to the leaving point
-            if LOOP_FINISHED and math.sqrt((self.current_x - self.leaving_point[0])**2 + (self.current_y - self.leaving_point[1])**2) < self.STARTPOINT_TOLERANCE: 
+            if LOOP_FINISHED and math.sqrt((self.current_x - self.leaving_point[0])**2 + (self.current_y - self.leaving_point[1])**2) < self.WAYPOINT_TOLERANCE: 
                     break
             
             # Apply the edge following algorithm

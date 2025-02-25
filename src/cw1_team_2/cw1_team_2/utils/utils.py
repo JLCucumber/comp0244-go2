@@ -1,4 +1,6 @@
-# 点
+from geometry_msgs.msg import Pose2D, Point, Vector3
+from std_msgs.msg import ColorRGBA
+from visualization_msgs.msg import Marker# 点
 class Point(object):
 
     def __init__(self, x, y):
@@ -39,3 +41,25 @@ def is_intersected(A, B, C, D):
 
     return (vector_product(AC, AD) * vector_product(BC, BD) <= ZERO) \
         and (vector_product(CA, CB) * vector_product(DA, DB) <= ZERO)
+
+def get_rect_marker(rect,stamp):
+    """Get a Marker message for a rectangle in livox frame"""
+    # Publish the rectangle
+    rect_msg = Marker()
+    rect_msg.header.frame_id = "livox"
+    rect_msg.header.stamp = stamp
+    rect_msg.ns = "rectangle"
+    rect_msg.id = 3
+    rect_msg.type = Marker.POINTS
+    rect_msg.action = Marker.ADD
+    rect_msg.pose.orientation.w = 1.0
+    rect_msg.scale = Vector3(x=0.1, y=0.1, z=0.1)
+    rect_msg.color = ColorRGBA(r=0.0, g=1.0, b=0.0, a=1.0)
+
+    for i in range(len(rect)):
+        point = Point()
+        point.x = rect[i][0]
+        point.y = rect[i][1]
+        point.z = 0.0
+        rect_msg.points.append(point)
+    return rect_msg

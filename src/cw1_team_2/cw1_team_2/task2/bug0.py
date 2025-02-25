@@ -6,7 +6,7 @@ from cw1_team_2.task1.cw1_edge_follower import AdvancedEdgeFollowerNodes
 from geometry_msgs.msg import Pose2D
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
-from cw1_team_2.utils.utils import is_intersected
+from cw1_team_2.utils.utils import is_intersected, get_rect_marker
 
 class BugPlanner(Node):
     def __init__(self, name):
@@ -30,11 +30,12 @@ class BugPlanner(Node):
         self.current_y = 0.0
         self.current_theta = 0.0
         self.current_edges = []
-        self.NEW_GOAL = False
+        self.NEW_GOAL = True
         self.last_goal = [self.current_x, self.current_y, self.current_theta]
 
         # Publishers
         self.waypoint_pub = self.create_publisher(Pose2D, 'waypoint', 1)
+        self.rect_pub = self.create_publisher(Marker, 'rectangle', 10)
 
         # Subscribers
         self.odom_sub = self.create_subscription(
@@ -73,10 +74,15 @@ class BugPlanner(Node):
         # If there is an edge in the way, follow the edge
         rectange_width = 0.3
         rect = np.zeros((4,2))
-        rect[0] = [1/2*rectange_width*math.sin(theta_livox), 1/2*rectange_width*math.cos(theta_livox)]
-        rect[1] = [rect[0][0] + self.OBSTACLE_DISTANCE*math.sin(theta_livox + np.pi/2), rect[0][1] + self.OBSTACLE_DISTANCE*math.cos(theta_livox + np.pi/2)]
-        rect[2] = [rect[1][0] + rectange_width*math.sin(theta_livox + np.pi), rect[1][1] + rectange_width*math.cos(theta_livox + np.pi)]
-        rect[3] = [rect[2][0] + self.OBSTACLE_DISTANCE*math.sin(theta_livox - np.pi/2), rect[2][1] + self.OBSTACLE_DISTANCE*math.cos(theta_livox - np.pi/2)]        
+        rect[0] = [1/2*rectange_width*math.cos(theta_livox+np.pi/2), 1/2*rectange_width*math.sin(theta_livox+np.pi/2)]
+        rect[1] = [rect[0][0] + self.OBSTACLE_DISTANCE*math.cos(theta_livox), rect[0][1] + self.OBSTACLE_DISTANCE*math.sin(theta_livox)]
+        rect[2] = [rect[1][0] + rectange_width*math.cos(theta_livox - np.pi/2), rect[1][1] + rectange_width*math.sin(theta_livox - np.pi/2)]
+        rect[3] = [rect[2][0] + self.OBSTACLE_DISTANCE*math.cos(theta_livox + np.pi), rect[2][1] + self.OBSTACLE_DISTANCE*math.sin(theta_livox + np.pi)] 
+
+        # Publish the rectangle
+        rect_msg = get_rect_marker(rect, self.get_clock().now().to_msg())
+        self.rect_pub.publish(rect_msg)
+        
         # Check if the edge crosses the rectangle
         rect_edges = []
         for i in range(len(rect)):
@@ -97,7 +103,7 @@ class BugPlanner(Node):
         while True:
             if not self.is_obstacle_detected(theta_livox, self.current_edges):
                 Count += 1
-                if Count == 20 or not self.timer.is_canceled(): # No obstacle detected for 20 iterations or robot already moving
+                if Count == 100 or not self.timer.is_canceled(): # No obstacle detected for 100 iterations or robot already moving
                     break
             else:
                 Count = 0

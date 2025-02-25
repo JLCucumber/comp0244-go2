@@ -164,12 +164,12 @@ class CW1_WaypointFollower(WaypointFollower):
             twist_msg.angular.z = 0.0  # 方向不变
             self.get_logger().info("Moving Backward")
         
-        # 2️  横向移动情况 ：目标在机器人侧方（90 度左右）
-        elif abs(relative_angle - math.pi / 2) < 0.3 or abs(relative_angle + math.pi / 2) < 0.3:
-            twist_msg.linear.y = min(abs(vy), self.max_velo) * (1 if relative_angle > 0 else -1)
-            twist_msg.linear.x = 0.0  # 不前进
-            twist_msg.angular.z = 0.0  # 不旋转
-            self.get_logger().info("Moving Sideways")
+        # # 2️  横向移动情况 ：目标在机器人侧方（90 度左右）
+        # elif abs(relative_angle - math.pi / 2) < 0.3 or abs(relative_angle + math.pi / 2) < 0.3 and distance_to_target < 0.1:
+        #     twist_msg.linear.y = min(abs(vy), self.max_velo) * (1 if relative_angle > 0 else -1)
+        #     twist_msg.linear.x = 0.0  # 不前进
+        #     twist_msg.angular.z = 0.0  # 不旋转
+        #     self.get_logger().info("Moving Sideways")
         
         # 3️  正常行走逻辑 
         elif distance_to_target > 0.1:
