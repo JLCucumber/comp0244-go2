@@ -3,7 +3,7 @@ import math
 import numpy as np
 from rclpy.node import Node
 from cw1_team_2.task1.cw1_edge_follower import AdvancedEdgeFollowerNodes
-from geometry_msgs.msg import Pose2D, Point, Vector3
+from geometry_msgs.msg import Pose2D
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
 from cw1_team_2.utils.utils import is_intersected, get_rect_marker

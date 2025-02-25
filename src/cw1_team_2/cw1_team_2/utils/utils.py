@@ -1,17 +1,10 @@
-<<<<<<< HEAD
 from geometry_msgs.msg import Pose2D, Point, Vector3
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker# 点
-
-
-class Point2D(object):
-=======
 import os
 import csv
 
-# 点
-class Point(object):
->>>>>>> origin/tackle_task1_jumping_edge
+class Point2D(object):
 
     def __init__(self, x, y):
         self.x, self.y = x, y
