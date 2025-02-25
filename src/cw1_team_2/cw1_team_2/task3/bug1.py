@@ -24,7 +24,7 @@ class BugPlanner(Node):
         self.WAYPOINT_DISTANCE = 0.2  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
         self.OBSTACLE_DISTANCE = 1.5  # [m]
-        self.STARTPOINT_TOLERANCE = 0.8 # [m]
+        self.STARTPOINT_TOLERANCE = 1.0 # [m]
 
         # Variables
         self.current_x = 0.0
@@ -39,6 +39,7 @@ class BugPlanner(Node):
 
         # Publishers
         self.waypoint_pub = self.create_publisher(Pose2D, 'waypoint', 1)
+        self.rect_pub = self.create_publisher(Marker, 'rectangle', 10)
 
         # Subscribers
         self.odom_sub = self.create_subscription(
