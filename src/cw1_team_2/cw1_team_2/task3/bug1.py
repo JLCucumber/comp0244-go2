@@ -115,6 +115,11 @@ class BugPlanner(Node):
                 self.timer.cancel()
                 self.loop_start_point = [self.current_x, self.current_y] # Record the start point of the loop
                 min_distance = np.inf
+
+                # Reset the edge follower
+                self.edge_follower.last_closest_point = None
+                self.edge_follower.closest_edge_point = None
+                self.edge_follower.current_waypoint = None
             
             elif not self.timer.is_canceled(): # No obstacle detected and robot moving towards the goal
                 break

@@ -110,11 +110,10 @@ class BugPlanner(Node):
             # pause the timer
             if not self.timer.is_canceled():
                 self.timer.cancel()
-                self.get_logger().info("Clear out last closest point")
                 self.edge_follower.last_closest_point = None
                 self.edge_follower.closest_edge_point = None
                 self.edge_follower.current_waypoint = None
-                
+
             rclpy.spin_once(self.edge_follower)
             self.update_data()
             goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y])
