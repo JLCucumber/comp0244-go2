@@ -24,15 +24,17 @@ class BugPlanner(Node):
         self.WAYPOINT_DISTANCE = 0.2  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
         self.OBSTACLE_DISTANCE = 1.5  # [m]
+        self.STARTPOINT_TOLERANCE = 0.3 # [m]
 
         # Variables
         self.current_x = 0.0
         self.current_y = 0.0
         self.current_theta = 0.0
-        self.current_waypoint = None
-        self.last_waypoint = None
         self.current_edges = []
         self.NEW_GOAL = False
+        self.distance_to_goal = 0.0
+        self.loop_start_point = [0.0, 0.0]
+        self.leaving_point = [0.0, 0.0]
         self.last_goal = [self.current_x, self.current_y, self.current_theta]
 
         # Publishers
@@ -98,22 +100,44 @@ class BugPlanner(Node):
         goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y]) 
         theta_livox = math.atan2(goal_livox[1], goal_livox[0])
         Count = 0
+        LOOP_FINISHED = True 
+        LOOP_STARTED = False
         # Check if there is an obstacle in the way
         while True:
-            # TODO: Modify the algorithms here to implement Bug1
-            if not self.is_obstacle_detected(theta_livox, self.current_edges):
-                Count += 1
-                if Count == 100 or not self.timer.is_canceled():
+            # Check if there is an obstacle in the way while moving towards the goal
+            if self.is_obstacle_detected(theta_livox, self.current_edges) and not self.timer.is_canceled(): # Obstacle detected and robot moving towards the goal
+                LOOP_FINISHED = False
+                # pause the timer and start following the edge
+                self.timer.cancel()
+                self.loop_start_point = [self.current_x, self.current_y] # Record the start point of the loop
+                min_distance = np.inf
+
+            # Check if the loop is finished and the robot is close to the leaving point
+            if LOOP_FINISHED and math.sqrt((self.current_x - self.leaving_point[0])**2 + (self.current_y - self.leaving_point[1])**2) < self.STARTPOINT_TOLERANCE: 
                     break
-            else:
-                Count = 0
-            # pause the timer
-            self.timer.cancel()
+            
+            # Apply the edge following algorithm
             rclpy.spin_once(self.edge_follower)
+            
+            # Update Data
             self.update_data()
             goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y])
             theta_livox = math.atan2(goal_livox[1], goal_livox[0])
+            if self.distance_to_goal < min_distance:
+                min_distance = self.distance_to_goal
+                self.leaving_point = [self.current_x, self.current_y]
             
+            # Check if the robot has started the loop
+            if not LOOP_STARTED and math.sqrt((self.current_x - self.loop_start_point[0])**2 + (self.current_y - self.loop_start_point[1])**2) > self.STARTPOINT_TOLERANCE:
+                LOOP_STARTED = True
+
+            # Check if the robot has finished the loop
+            if LOOP_STARTED and math.sqrt((self.current_x - self.loop_start_point[0])**2 + (self.current_y - self.loop_start_point[1])**2) < self.STARTPOINT_TOLERANCE:
+                LOOP_FINISHED = True
+            
+
+        
+        # Resume robot moving towards the goal
         if self.timer.is_canceled():
             self.get_logger().info("Obstacle Cleared") 
             self.timer.reset()
@@ -141,6 +165,7 @@ class BugPlanner(Node):
         self.goal_y = self.get_parameter("goal_y").get_parameter_value().double_value
         self.goal_theta = self.get_parameter("goal_theta").get_parameter_value().double_value
         self.goal = [self.goal_x, self.goal_y, self.goal_theta]
+        self.distance_to_goal = math.sqrt((self.current_x - self.goal_x)**2 + (self.current_y - self.goal_y)**2)
         if self.goal != self.last_goal:
             self.get_logger().info(f"New Goal: {self.goal_x}, {self.goal_y}, {self.goal_theta}")
             self.NEW_GOAL = True
