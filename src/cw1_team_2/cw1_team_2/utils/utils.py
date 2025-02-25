@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 from geometry_msgs.msg import Pose2D, Point, Vector3
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker# 点
 
 
 class Point2D(object):
+=======
+import os
+import csv
+
+# 点
+class Point(object):
+>>>>>>> origin/tackle_task1_jumping_edge
 
     def __init__(self, x, y):
         self.x, self.y = x, y
@@ -65,3 +73,22 @@ def get_rect_marker(rect,stamp):
         point.z = 0.0
         rect_msg.points.append(point)
     return rect_msg
+
+# for task 1
+def save_to_csv(msg, path):
+    # Collect information
+    marker_id = msg.id
+    timestamp_sec = msg.header.stamp.sec
+    timestamp_nanosec = msg.header.stamp.nanosec
+
+    # Check if file exists
+    file_exists = os.path.isfile(path)
+
+    # Write to CSV file
+    with open(path, mode='a', newline='') as file:
+        writer = csv.writer(file)
+
+        # Write header if file does not exist
+        if not file_exists:
+            writer.writerow(['Marker ID', 'Timestamp (sec)', 'Timestamp (nanosec)'])
+        writer.writerow([marker_id, timestamp_sec, timestamp_nanosec])

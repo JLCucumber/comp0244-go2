@@ -24,6 +24,22 @@ class LocalLineProcessor(Node):
         """处理 local_map_lines 并重新发布"""
         self.get_logger().info(f"Received Marker ID: {msg.id}, Points: {len(msg.points)}")
 
+        # Process incoming line segments
+        if len(msg.points) < 2:
+            return
+
+        # Convert line points to numpy arrays
+        points = [np.array([point.x, point.y]) for point in msg.points]
+        
+        # Create edges by connecting adjacent points
+        for i in range(len(points) - 1):
+            edge = (points[i], points[i+1]) # (start_point, end_point)
+            if len(self.current_edges) > 0:
+                if (tuple(edge[0]), tuple(edge[1])) in [(tuple(e[0]), tuple(e[1])) for e in self.current_edges]:
+                    continue
+            self.current_edges.append(edge)
+
+        
         # 创建新的 Marker 消息
         processed_marker = Marker()
         processed_marker.header = msg.header
@@ -33,8 +49,8 @@ class LocalLineProcessor(Node):
         processed_marker.scale = msg.scale
         processed_marker.color = msg.color
 
-        # 🔹 数据预处理（例如：滤波、平滑、转换等）
-        processed_marker.points = self.process_lines(msg.points)
+        # # 🔹 数据预处理（例如：滤波、平滑、转换等）
+        # processed_marker.points = self.process_lines(msg.points)
 
         # 发布新的 Marker
         self.publisher.publish(processed_marker)
