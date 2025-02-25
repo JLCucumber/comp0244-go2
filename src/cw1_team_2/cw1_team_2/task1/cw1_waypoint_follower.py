@@ -146,8 +146,6 @@ class CW1_WaypointFollower(WaypointFollower):
         self.prev_error_theta = error_theta
         self.prev_error_orientation = error_orientation
 
-        
-        
         # 6)  计算目标相对于机器人前进方向的角度（范围[-pi, pi]）
         target_angle = math.atan2(error_y, error_x)
         relative_angle = self.normalize_angle(target_angle - self.current_orientation)
@@ -162,29 +160,30 @@ class CW1_WaypointFollower(WaypointFollower):
         if abs(relative_angle) > math.pi * 0.9:
             twist_msg.linear.x = -min(math.hypot(vx, vy), self.max_velo)  # 直接后退
             twist_msg.angular.z = 0.0  # 方向不变
-            self.get_logger().info("Moving Backward")
+            #self.get_logger().info("Moving Backward")
         
         # 2️  横向移动情况 ：目标在机器人侧方（90 度左右）
-        elif abs(relative_angle - math.pi / 2) < 0.3 or abs(relative_angle + math.pi / 2) < 0.3:
+        elif (abs(relative_angle - math.pi / 2) < 0.3 or abs(relative_angle + math.pi / 2) < 0.3) and distance_to_target < 0.1:
             twist_msg.linear.y = min(abs(vy), self.max_velo) * (1 if relative_angle > 0 else -1)
             twist_msg.linear.x = 0.0  # 不前进
             twist_msg.angular.z = 0.0  # 不旋转
-            self.get_logger().info("Moving Sideways")
+            #self.get_logger().info("Moving Sideways")
         
         # 3️  正常行走逻辑 
         elif distance_to_target > 0.1:
             twist_msg.linear.x = min(math.hypot(vx, vy), self.max_velo)  # 保持最大速度
             twist_msg.angular.z = min(vtheta, self.max_velo)  # 持续调整方向
-            self.get_logger().info("Moving towards waypoint")
+            #self.get_logger().info("Moving towards waypoint")
 
         # 4 接近目标时，单独调整方向 
         else:
             twist_msg.linear.x = 0.0  # 停止前进
             if abs(error_orientation) > 0.05:
                 twist_msg.angular.z = min(vorientation, self.max_velo)
-                self.get_logger().info(" Rotating to align with final orientation")
+                #self.get_logger().info(" Rotating to align with final orientation")
             else:
-                self.get_logger().info(" Arrived at waypoint")
+                # self.get_logger().info("Arrived at waypoint")
+                pass
         
 
 

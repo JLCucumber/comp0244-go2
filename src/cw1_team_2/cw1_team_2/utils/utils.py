@@ -1,3 +1,6 @@
+import os
+import csv
+
 # 点
 class Point(object):
 
@@ -39,3 +42,23 @@ def is_intersected(A, B, C, D):
 
     return (vector_product(AC, AD) * vector_product(BC, BD) <= ZERO) \
         and (vector_product(CA, CB) * vector_product(DA, DB) <= ZERO)
+
+
+# for task 1
+def save_to_csv(msg, path):
+    # Collect information
+    marker_id = msg.id
+    timestamp_sec = msg.header.stamp.sec
+    timestamp_nanosec = msg.header.stamp.nanosec
+
+    # Check if file exists
+    file_exists = os.path.isfile(path)
+
+    # Write to CSV file
+    with open(path, mode='a', newline='') as file:
+        writer = csv.writer(file)
+
+        # Write header if file does not exist
+        if not file_exists:
+            writer.writerow(['Marker ID', 'Timestamp (sec)', 'Timestamp (nanosec)'])
+        writer.writerow([marker_id, timestamp_sec, timestamp_nanosec])
