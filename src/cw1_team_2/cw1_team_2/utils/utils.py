@@ -1,7 +1,9 @@
 from geometry_msgs.msg import Pose2D, Point, Vector3
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker# 点
-class Point(object):
+
+
+class Point2D(object):
 
     def __init__(self, x, y):
         self.x, self.y = x, y
@@ -13,8 +15,8 @@ class Vector(object):
         try:
             start_point.x
         except AttributeError:
-            start_point = Point(start_point[0], start_point[1])
-            end_point = Point(end_point[0], end_point[1])
+            start_point = Point2D(start_point[0], start_point[1])
+            end_point = Point2D(end_point[0], end_point[1])
         self.start_point, self.end_point = start_point, end_point
         self.x = end_point.x - start_point.x
         self.y = end_point.y - start_point.y
