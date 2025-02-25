@@ -6,7 +6,7 @@ from cw1_team_2.task1.cw1_edge_follower import AdvancedEdgeFollowerNodes
 from geometry_msgs.msg import Pose2D
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
-from ..utils.utils import is_intersected
+from cw1_team_2.utils.utils import is_intersected
 
 class BugPlanner(Node):
     def __init__(self, name):
@@ -24,7 +24,7 @@ class BugPlanner(Node):
         self.WAYPOINT_DISTANCE = 0.2  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
         self.OBSTACLE_DISTANCE = 1.5  # [m]
-        self.STARTPOINT_TOLERANCE = 0.3 # [m]
+        self.STARTPOINT_TOLERANCE = 0.5 # [m]
 
         # Variables
         self.current_x = 0.0
@@ -57,7 +57,7 @@ class BugPlanner(Node):
         self.timer = self.create_timer(self.UPDATE_RATE, self.timer_callback)
         
         self.get_logger().info('Edge Follower node initialized')
-        self.get_logger().info('Bug0 node initialized')
+        self.get_logger().info('Bug1 node initialized')
 
     def is_goal_reached(self):
         """Check if the goal is reached"""
@@ -99,7 +99,6 @@ class BugPlanner(Node):
         # Get Direction to the goal
         goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y]) 
         theta_livox = math.atan2(goal_livox[1], goal_livox[0])
-        Count = 0
         LOOP_FINISHED = True 
         LOOP_STARTED = False
         # Check if there is an obstacle in the way
@@ -111,7 +110,10 @@ class BugPlanner(Node):
                 self.timer.cancel()
                 self.loop_start_point = [self.current_x, self.current_y] # Record the start point of the loop
                 min_distance = np.inf
-
+            
+            elif not self.timer.is_canceled(): # No obstacle detected and robot moving towards the goal
+                break
+            
             # Check if the loop is finished and the robot is close to the leaving point
             if LOOP_FINISHED and math.sqrt((self.current_x - self.leaving_point[0])**2 + (self.current_y - self.leaving_point[1])**2) < self.STARTPOINT_TOLERANCE: 
                     break
@@ -177,7 +179,7 @@ class BugPlanner(Node):
         return
     
     def timer_callback(self):
-        """Main loop of the bug0 planner"""
+        """Main loop of the bug1 planner"""
         if not self.edge_follower.is_odom_received:
             return
         

@@ -6,7 +6,8 @@ from cw1_team_2.task1.cw1_edge_follower import AdvancedEdgeFollowerNodes
 from geometry_msgs.msg import Pose2D
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import Odometry
-from ..utils.utils import is_intersected
+from cw1_team_2.utils.utils import is_intersected
+
 class BugPlanner(Node):
     def __init__(self, name):
         super().__init__(name)
@@ -28,8 +29,6 @@ class BugPlanner(Node):
         self.current_x = 0.0
         self.current_y = 0.0
         self.current_theta = 0.0
-        self.current_waypoint = None
-        self.last_waypoint = None
         self.current_edges = []
         self.NEW_GOAL = False
         self.last_goal = [self.current_x, self.current_y, self.current_theta]
@@ -98,7 +97,7 @@ class BugPlanner(Node):
         while True:
             if not self.is_obstacle_detected(theta_livox, self.current_edges):
                 Count += 1
-                if Count == 100 or not self.timer.is_canceled():
+                if Count == 20 or not self.timer.is_canceled(): # No obstacle detected for 20 iterations or robot already moving
                     break
             else:
                 Count = 0
