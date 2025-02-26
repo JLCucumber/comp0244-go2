@@ -266,9 +266,13 @@ $\text{current_waypoint} = 0.6 \times \text{current_waypoint} + 0.4 \times \text
 - A threshold of `self.POINT_THRESHOLD = 0.8` meters ensures stable edge detection.
 - Edge points are updated only if both conditions are met:
     1. Distance to the last closest point is below the threshold:
-    $\text{distance_to_last_time_closest_point} < \text{self.POINT_THRESHOLD}$
+    ```math
+    text{distance_to_last_time_closest_point} < \text{self.POINT_THRESHOLD}
+    ```
     2. Distance to the robot is less than the minimum recorded distance:
-    $\text{distance_to_robot} < \text{min_distance}$
+    ```math
+    \text{distance_to_robot} < \text{min_distance}$
+    ```
 
 3. **Determining Counterclockwise Direction**
 
