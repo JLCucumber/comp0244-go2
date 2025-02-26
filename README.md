@@ -78,9 +78,11 @@ sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 In the same terminal, build the package before running the code.
 ```bash
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+echo "source /workspace/comp0244-go2/install/setup.bash" >> ~/.bashrc
+source /opt/ros/humble/setup.bash
 cd /workspace/comp0244-go2/src/livox_ros_driver2 && ./build.sh humble
 cd /workspace/comp0244-go2 && colcon build
-echo "source /workspace/comp0244-go2/install/setup.bash" >> ~/.bashrc
+source /workspace/comp0244-go2/install/setup.bash
 ```
 
 (可选) 为获得更好的仿真效果, 需要使用 docker-compose 构建基于GPU 的环境
