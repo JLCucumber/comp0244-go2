@@ -2,8 +2,6 @@
 
 import math
 import rclpy
-from rclpy.node import Node
-
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist, Pose2D
 from waypoint_follower.waypoint_follower import WaypointFollower
@@ -223,35 +221,6 @@ class CW1_WaypointFollower(WaypointFollower):
                 self.get_logger().info("Arrived at waypoint")
                 self.is_arrive_waypoint = True
                 pass
-        
-
-
-        # Before arriving to the waypoint, decide whether to rotate in place or move forward: 
-        # If the robot is not heading to the waypoint (with a margin 0.1 rad) and
-        # the  waypoint is far away (more than 0.1 m), the robot needs to rotate in place
-        # else, once the rotation is completed, enter the next phase, moving forward until
-        # the distance between the robot and the waypoint is less than 0.1m
-        # if not self.is_arrive_waypoint:
-        #     if abs(error_theta)>0.1 and math.hypot(error_x, error_y)>0.1:
-        #         twist_msg.angular.z = min(vtheta, self.max_velo)
-        #         self.get_logger().info( f"rotate before moving forward" )
-        #     elif math.hypot(error_x, error_y)>0.1:
-        #         twist_msg.linear.x = min(math.hypot(vx,vy), self.max_velo)
-        #         twist_msg.angular.z = min(vtheta, self.max_velo)
-        #         self.get_logger().info( f"moving forward" )                      
-        #     else:
-        #         self.is_arrive_waypoint = True
-        #         # arrive the waypoint
-        #         pass
-
-        # # After arriving to the waypoint, rotate in place to the target orientation: 
-        # else:
-        #     if abs(error_orientation)>0.05:
-        #         twist_msg.angular.z = min(vorientation, self.max_velo)
-        #         self.get_logger().info( f"rotating to target orientation" )
-        #     else:
-        #         # arrive the target orientation
-        #         pass
 
         self.cmd_vel_pub.publish(twist_msg)
 
