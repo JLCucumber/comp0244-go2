@@ -9,11 +9,19 @@ from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     IncludeLaunchDescription,
+    OpaqueFunction,
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 
+def get_world_name(context):
+
+    gazebo_world = LaunchConfiguration("gazebo_world")
+    world_name = gazebo_world.perform(context)
+    # Use TextSubstitution to get the value of the gazebo_world argument
+    world_path = f"/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_{world_name}.world"
+    return [DeclareLaunchArgument("world", default_value=world_path, description="Gazebo world name")]
 
 def generate_launch_description():
 
@@ -35,16 +43,11 @@ def generate_launch_description():
     links_config = os.path.join(config_pkg_share, "config/links/links.yaml")
     default_model_path = os.path.join(descr_pkg_share, "xacro/robot_mid360.xacro")
 
-    declare_use_sim_time = DeclareLaunchArgument(
+    declare_gazebo_world = DeclareLaunchArgument(
         'gazebo_world',
-        default_value='world_2',  # Default to true for simulation time
+        default_value='world_4',  # Default to true for simulation time
         description='Gazebo world name'
     )
-
-    gazebo_world = LaunchConfiguration("gazebo_world")
-
-    default_world_path = os.path.join(f"/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_{gazebo_world}.world")
-
 
     declare_use_sim_time = DeclareLaunchArgument(
         "use_sim_time",
@@ -65,9 +68,7 @@ def generate_launch_description():
         default_value=ros_control_config,
         description="Ros control config path",
     )
-    declare_gazebo_world = DeclareLaunchArgument(
-        "world", default_value=default_world_path, description="Gazebo world name"
-    )
+
 
     declare_gui = DeclareLaunchArgument(
         "gui", default_value="true", description="Use gui"
@@ -135,6 +136,7 @@ def generate_launch_description():
             declare_lite,
             declare_ros_control_file,
             declare_gazebo_world,
+            OpaqueFunction(function=get_world_name),
             declare_gui,
             declare_world_init_x,
             declare_world_init_y,

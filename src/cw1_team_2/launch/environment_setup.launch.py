@@ -28,6 +28,12 @@ def generate_launch_description():
         description='Use simulation (Gazebo) clock if true'
     )
 
+    declare_gazebo_world = DeclareLaunchArgument(
+        'gazebo_world',
+        default_value='world_4',
+        description='Path to the Gazebo world file'
+    )
+
     # Get the use_sim_time configuration to pass to nodes and included launch files
     use_sim_time = LaunchConfiguration("use_sim_time")
     gazebo_world = LaunchConfiguration("gazebo_world")
@@ -107,6 +113,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         declare_use_sim_time,  # Declare use_sim_time
+        declare_gazebo_world,
         gazebo_group,
         mapping_group,
         local_map_group,

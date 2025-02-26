@@ -57,6 +57,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         declare_use_sim_time,
+        declare_gazebo_world,
         environment_setup_launch,
         bug0_group
     ])
