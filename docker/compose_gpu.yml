@@ -38,4 +38,4 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /dev/input:/dev/input
       - /dev/bus/usb:/dev/bus/usb:rw
-      - /home/$USER/workspace:/workspace:rw
+      - /home/${USER}/workspace:/workspace:rw
