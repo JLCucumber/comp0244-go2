@@ -145,3 +145,14 @@ echo "source /workspace/comp0244-go2/install/setup.bash" >> ~/.bashrc
 
 5. **(terminal #2)** `ros2 run cw1_team_2 cw1_edge_follower`
     1. 你应该能看到机器人开始运动.
+  
+
+## Task 2
+
+launch everything through launch file: 
+
+## Task 3
+
+
+
+
