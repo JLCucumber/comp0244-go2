@@ -1,8 +1,81 @@
 # Environment Set-up
+### BEFORE YOU START
+***The following tutorial has only been tested on Ubuntu 22.04 system.***
+## 1. Create Project
+Create your workspace and enter directory.
+```bash
+mkdir /home/$USER/workspace && cd /home/$USER/workspace
+```
+Clone the repo or extract folder `comp0244-go2` in the workspace.
+```bash
+git clone --recursive git@github.com:JLCucumber/comp0244-go2.git
+```
+## 2. Docker Setup
+### 2.1 Install Dependencies
+```bash
+for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-1. 创建并进入文件夹 `mkdir workspace && cd workspace`
-2. `git clone --recursive [git@github.com](mailto:git@github.com):JLCucumber/comp0244-go2.git`
-3. (可选) 为获得更好的仿真效果, 需要使用 docker-compose 构建基于GPU 的环境
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt-get install x11-xserver-utils
+xhost +
+```
+
+### 2.2 Install Docker
+The following are instructions of different versions of Docker based on CPU and GPU for you to choose, respectively. In order to better simulate, you can choose GPU version to install
+#### i. CPU Version
+
+In the same terminal, download the docker images.
+```bash
+sudo docker pull jjiao/comp0244:unitree-go-ros2-humble
+sudo docker tag jjiao/comp0244:unitree-go-ros2-humble comp0244:unitree-go-ros2-humble
+```
+In the same terminal, create the docker container:
+```bash
+sudo docker run -it -e DISPLAY -e QT_X11_NO_MITSHM=1 -e XAUTHORITY=/tmp/.docker.xauth \
+-v /home/$USER/workspace:/workspace \
+--network host \
+--name comp0244_team2 comp0244:unitree-go-ros2-humble /bin/bash
+```
+Exit the docker and start your docker environment
+```bash
+sudo docker container start comp0244_team2
+sudo docker exec -it comp0244_team2 /bin/bash
+```
+#### ii. GPU Version (Recomended)
+Install `docker-compose`.
+```bash
+sudo apt install docker-compose
+```
+Before starting the docker, check if graphic card driver running properly.
+```bash
+nvidia-smi
+```
+Install `nvidia-container-toolkit` to support GPU in docker.
+```bash
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt update
+sudo apt install -y nvidia-container-toolkit
+sudo systemctl restart docker
+```
+Start docker.
+```bash
+sudo docker-compose -f comp0244-go2/docker/compose_gpu.yml up -d
+```
+
+
+(可选) 为获得更好的仿真效果, 需要使用 docker-compose 构建基于GPU 的环境
     1. 安装 docker-compose
     2. 进入`comp0244-go2/docker/` , 修改`compose_gpu.yml`
         
