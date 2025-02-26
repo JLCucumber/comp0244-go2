@@ -170,7 +170,7 @@ class CW1_WaypointFollower(WaypointFollower):
             self.get_logger().info("Moving Backward")
         
         # 2️  urgent turn
-        elif abs(relative_angle) > math.pi * 0.5 and distance_to_target > 0.2 :  
+        elif abs(relative_angle) > math.pi * 0.4 and distance_to_target > 0.1 :  
             twist_msg.linear.x = 0.1  # move forward a little
             twist_msg.linear.y = 0.0  
             twist_msg.angular.z = min(vorientation, self.max_angle_velo)  # fast 旋转

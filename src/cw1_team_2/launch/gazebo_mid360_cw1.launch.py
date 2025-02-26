@@ -19,8 +19,10 @@ def get_world_name(context):
 
     gazebo_world = LaunchConfiguration("gazebo_world")
     world_name = gazebo_world.perform(context)
+
+
     # Use TextSubstitution to get the value of the gazebo_world argument
-    world_path = f"/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/gazebo_simple_{world_name}.world"
+    world_path = f"/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/environment/{world_name}.world"
     return [DeclareLaunchArgument("world", default_value=world_path, description="Gazebo world name")]
 
 def generate_launch_description():
