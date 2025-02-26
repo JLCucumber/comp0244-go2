@@ -23,7 +23,7 @@ class BugPlanner(Node):
         self.UPDATE_RATE = 0.2  # [s]
         self.WAYPOINT_DISTANCE = 0.2  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
-        self.OBSTACLE_DISTANCE = 1.5  # [m]
+        self.OBSTACLE_DISTANCE = 0.75  # [m]
         self.STARTPOINT_TOLERANCE = 1.0 # [m]
 
         # Variables
@@ -206,16 +206,7 @@ class BugPlanner(Node):
         if self.NEW_GOAL:
             self.move_to_goal()
 
-            
 
-
-
-
-
-        
-
-
-    
 def main(args=None):
     rclpy.init(args=args)
     node = BugPlanner("Bug1")

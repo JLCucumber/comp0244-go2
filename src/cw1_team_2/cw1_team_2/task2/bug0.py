@@ -23,7 +23,7 @@ class BugPlanner(Node):
         self.UPDATE_RATE = 0.2  # [s]
         self.WAYPOINT_DISTANCE = 0.3  # [m]
         self.WAYPOINT_TOLERANCE = 0.1 # [m]
-        self.OBSTACLE_DISTANCE = 1.5  # [m]
+        self.OBSTACLE_DISTANCE = 1.0  # [m]
 
         # Variables
         self.current_x = 0.0
