@@ -1,8 +1,37 @@
-from geometry_msgs.msg import Pose2D, Point, Vector3
+from geometry_msgs.msg import  Point, Vector3
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker# 点
 import os
 import csv
+
+"""
+MIT License
+
+Copyright (c) 2025 Comp0244-Team2
+
+Authors: 
+- Hongbo Li (Code)
+- Yiyang Jia (Code)
+- Xinyun Mo (Testing)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 class Point2D(object):
 
@@ -24,15 +53,15 @@ class Vector(object):
 ZERO = 1e-9
 
 def negative(vector):
-    """取反"""
+    """return the negative vector of the input vector"""
     return Vector(vector.end_point, vector.start_point)
 
 def vector_product(vectorA, vectorB):
-    '''计算 x_1 * y_2 - x_2 * y_1'''
+    '''Calculate x_1 * y_2 - x_2 * y_1'''
     return vectorA.x * vectorB.y - vectorB.x * vectorA.y
 
 def is_intersected(A, B, C, D):
-    '''A, B, C, D 为 Point 类型'''
+    '''Check if line segment AB intersects with line segment CD'''
     AC = Vector(A, C)
     AD = Vector(A, D)
     BC = Vector(B, C)
@@ -69,6 +98,7 @@ def get_rect_marker(rect,stamp):
 
 # for task 1
 def save_to_csv(msg, path):
+    """Save the marker information to a CSV file"""
     # Collect information
     marker_id = msg.id
     timestamp_sec = msg.header.stamp.sec

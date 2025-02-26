@@ -91,6 +91,7 @@ class BugPlanner(Node):
         return distance < self.WAYPOINT_TOLERANCE
     
     def is_edge_crossed(self, edges, edges1):
+        '''Check if any edge in two sets of edges are crossed'''
         for i in range(len(edges)):
             for j in range(len(edges1)):
                 
@@ -99,6 +100,12 @@ class BugPlanner(Node):
         return False
     
     def is_obstacle_detected(self, theta_livox, current_edges):
+        """
+        Check if there is an obstacle in the way towards the goal
+        Args:
+        theta_livox: The angle between the robot and the goal in the base_link frame
+        current_edges: The edges detected by the LiDAR in the base_link frame
+        """
         # Check if any edge in the way (within a rectangular area of distance OBSTACLE_DISTANCE towards the goal and width of the robot)
         # If there is an edge in the way, follow the edge
         rectangle_width = 0.3
@@ -124,6 +131,11 @@ class BugPlanner(Node):
             return False
         
     def move_to_goal(self):
+        """
+        Move the robot towards the goal in two different ways, depending on the presence of obstacles
+        1. If there is no obstacle in the way, move towards the goal
+        2. If there is an obstacle in the way, follow the edge of the obstacle until the robot can move towards the goal
+        """
         # Get Direction to the goal
         goal_livox = self.edge_follower.transform_to_base_link([self.goal_x, self.goal_y]) 
         theta_livox = math.atan2(goal_livox[1], goal_livox[0])
@@ -152,8 +164,6 @@ class BugPlanner(Node):
         if self.timer.is_canceled():
             self.get_logger().info("Obstacle Cleared") 
             self.timer.reset()
-            
-            # self.edge_follower.last_closest_edge = None
 
         # Move towards the goal with self.WAYPOINT_DISTANCE
         next_waypoint = [self.WAYPOINT_DISTANCE*math.cos(theta_livox), self.WAYPOINT_DISTANCE*math.sin(theta_livox),theta_livox]
