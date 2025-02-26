@@ -1,8 +1,3 @@
-'''  Robot parameters for Bug1 algorithm '''
-'''  Usage 1 : ros2 param set /Bug1 src/cw1_team_2/cw1_team_2/config/robot_params_bug1.yaml'''
-'''  Usage 2 : ros2 launch cw1_team_2 run_solution_task_3.launch.py '''
-
-
 /Bug1:
   ros__parameters:
     goal_x: -2.0

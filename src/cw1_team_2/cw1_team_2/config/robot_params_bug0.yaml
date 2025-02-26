@@ -1,12 +1,6 @@
-''' Robot parameters for Bug0 algorithm
-
-
-'''
-
-
 /Bug0:
   ros__parameters:
-    goal_x: -2.0
+    goal_x: -10.0
     goal_y: 5.0
     goal_theta: 0.0
 
