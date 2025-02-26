@@ -119,7 +119,7 @@ Check connection
 ```
 ping 192.168.123.99
 ```
-And modify the ```/usr/app/comp0244_ws/unitree_ros2/setup.bash``` with the below command.
+And modify the ```/usr/app/comp0244_ws/unitree_ros2/setup.sh``` with the below command.
 
 **Note**: ```eno2``` is the network card of your computer and should change:
 ```
