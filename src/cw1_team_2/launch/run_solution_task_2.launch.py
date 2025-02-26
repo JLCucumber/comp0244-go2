@@ -4,6 +4,7 @@ from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, Grou
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
+from launch_ros.parameter_descriptions import ParameterFile
 from launch_ros.actions import Node
 import os
 
@@ -40,14 +41,22 @@ def generate_launch_description():
             }.items()
     )
 
+    # param_file_path = os.path.join(os.getcwd(), "config", "robot_params_bug0.yaml")
+    param_file_path = os.path.join(os.getcwd(), "src/cw1_team_2/cw1_team_2/config", "robot_params_bug0.yaml")
+    if os.path.exists(param_file_path):
+        parameter_file = ParameterFile(param_file_path, allow_substs=True)
+        print("Path is correct and file exists.")
+    else:
+        print("Path is incorrect or file does not exist.")
 
     bug0_node = Node(
         package='cw1_team_2',
         executable='cw1_bug0',
         output='screen',
-        parameters=[{
-            "use_sim_time": use_sim_time
-        }]
+        parameters=[
+            {"use_sim_time": use_sim_time},
+            ParameterFile(param_file_path, allow_substs=True)
+        ]
     )
 
     bug0_group = GroupAction([

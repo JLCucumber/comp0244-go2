@@ -1,29 +1,21 @@
-# /Bug0:
-#   ros__parameters:
-#     goal_x: 1.0
-#     goal_y: -1.0
-#     goal_theta: 0.0
+'''  Robot parameters for Bug1 algorithm '''
+'''  Usage 1 : ros2 param set /Bug1 src/cw1_team_2/cw1_team_2/config/robot_params_bug1.yaml'''
+'''  Usage 2 : ros2 launch cw1_team_2 run_solution_task_3.launch.py '''
 
 
-# /Bug0:
-#   ros__parameters:
-#     goal_x: -5.0
-#     goal_y: -5.0
-#     goal_theta: 0.0
-
-/Bug0:
+/Bug1:
   ros__parameters:
     goal_x: -2.0
     goal_y: 5.0
     goal_theta: 0.0
 
-# /Bug0:
+# /Bug1:
 #   ros__parameters:
 #     goal_x: 0.0
 #     goal_y: -5.0
 #     goal_theta: 0.0
 
-# /Bug0:
+# /Bug1:
 #   ros__parameters:
 #     goal_x: 8.0
 #     goal_y: -10.0
