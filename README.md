@@ -104,7 +104,7 @@ Remember to use **humble** in commands, not **foxy**. Here are the summary of th
 ```bash
 cd /usr/app/comp0244_ws/
 git clone https://github.com/unitreerobotics/unitree_ros2
-apt install vim net-tools
+apt install net-tools -y
 apt update && apt install ros-humble-rmw-cyclonedds-cpp && apt install ros-humble-rosidl-generator-dds-idl -y
 cd unitree_ros2/cyclonedds_ws/src/
 git clone https://github.com/ros2/rmw_cyclonedds -b humble && git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x
