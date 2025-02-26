@@ -290,7 +290,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
                     self.get_logger().info(f"\033[94mcurrent edge {current_index+1} out of {len(self.current_edges)}\033[0m")
                     self.get_logger().info(f"\033[94mincrement_left: {increment_left:.2f}, remaining_distance: {remaining_distance:.2f}\033[0m")
 
-                    increment_left -= np.linalg.norm(end - start)  # Fxcking bug here
+                    increment_left -= np.linalg.norm(end - start)  # Subtract the length of the current edge from the remaining increment distance
                     current_index += 1    # Yeah I know, we don't need to increase current point here, don't worry
                     # once we increase the index, the waypoint will be calculated based on the new edge
 
@@ -515,7 +515,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             return
 
         # Mitigate waypoints to avoid sharp turns (only if we have a last waypoint)
-        if self.reached_line_end and next_waypoint is not None:
+        if self.reached_line_end:
             next_waypoint = self.mitigate_waypoints(next_waypoint)
         
         # Update current waypoint

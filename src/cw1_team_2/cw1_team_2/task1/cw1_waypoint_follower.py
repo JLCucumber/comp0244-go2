@@ -49,7 +49,6 @@ class CW1_WaypointFollower(WaypointFollower):
 
     def __init__(self):
         super().__init__()
-        self.get_logger().info("Waypoint Follower node started. Waiting for waypoints...")
         
 
         self.x_target = None

@@ -101,11 +101,11 @@ class BugPlanner(Node):
     def is_obstacle_detected(self, theta_livox, current_edges):
         # Check if any edge in the way (within a rectangular area of distance OBSTACLE_DISTANCE towards the goal and width of the robot)
         # If there is an edge in the way, follow the edge
-        rectange_width = 0.3
+        rectangle_width = 0.3
         rect = np.zeros((4,2))
-        rect[0] = [1/2*rectange_width*math.cos(theta_livox+np.pi/2), 1/2*rectange_width*math.sin(theta_livox+np.pi/2)]
+        rect[0] = [1/2*rectangle_width*math.cos(theta_livox+np.pi/2), 1/2*rectangle_width*math.sin(theta_livox+np.pi/2)]
         rect[1] = [rect[0][0] + self.OBSTACLE_DISTANCE*math.cos(theta_livox), rect[0][1] + self.OBSTACLE_DISTANCE*math.sin(theta_livox)]
-        rect[2] = [rect[1][0] + rectange_width*math.cos(theta_livox - np.pi/2), rect[1][1] + rectange_width*math.sin(theta_livox - np.pi/2)]
+        rect[2] = [rect[1][0] + rectangle_width*math.cos(theta_livox - np.pi/2), rect[1][1] + rectangle_width*math.sin(theta_livox - np.pi/2)]
         rect[3] = [rect[2][0] + self.OBSTACLE_DISTANCE*math.cos(theta_livox + np.pi), rect[2][1] + self.OBSTACLE_DISTANCE*math.sin(theta_livox + np.pi)] 
 
         # Publish the rectangle
