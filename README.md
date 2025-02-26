@@ -259,16 +259,16 @@ sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 - **Overshoot Compensation:** The robot moves past the end of the detected line before turning to ensure a smoother transition, controlled by `self.OVERSHOOT = 0.3` meters.
 - **End-Line Lag:** At the end of the path, the robot continues moving in the original direction for one additional step to reduce abrupt turns.
 - **Corner Waypoint Smoothing:** Waypoints near corners are adjusted using a weighted average to prevent sharp turns:
-\text{current_waypoint} = 0.6 \times \text{current_waypoint} + 0.4 \times \text{self.last_waypoint}
+$\text{current_waypoint} = 0.6 \times \text{current_waypoint} + 0.4 \times \text{self.last_waypoint}$
 
 2. **Suppressing the "Edge Jumping" Issue**
 
 - A threshold of `self.POINT_THRESHOLD = 0.8` meters ensures stable edge detection.
 - Edge points are updated only if both conditions are met:
     1. Distance to the last closest point is below the threshold:
-    \text{distance_to_last_time_closest_point} < \text{self.POINT_THRESHOLD}
+    $\text{distance_to_last_time_closest_point} < \text{self.POINT_THRESHOLD}$
     2. Distance to the robot is less than the minimum recorded distance:
-    \text{distance_to_robot} < \text{min_distance}
+    $\text{distance_to_robot} < \text{min_distance}$
 
 3. **Determining Counterclockwise Direction**
 
@@ -279,13 +279,8 @@ sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 ### 4. **Extending Waypoint Information**
 
 - **Adding Direction Information:** Waypoints are expanded from (x,y) to (x,y,θ), where the angle is calculated as:
-\text{edge_angle} = \text{atan2}(\text{edge_direction}[1], \text{edge_direction}[0])
-    
-    (x,y)(x, y)
-    
-    (x,y,θ)(x, y, \theta)
-    
-- **180° Rotation Adjustment:**\text{waypoint} = \left[\text{waypoint}[0], \text{waypoint}[1], \text{edge_angle} + \pi\right]
+$\text{edge_angle} = \text{atan2}(\text{edge_direction}[1], \text{edge_direction}[0])$    
+- **180° Rotation Adjustment:**$\text{waypoint} = \left[\text{waypoint}[0], \text{waypoint}[1], \text{edge_angle} + \pi\right]$
 - **Visualization Improvement:** Waypoints are now displayed as arrows instead of spheres, making movement direction more intuitive.
 
 **cw1_waypoint_follower (waypoint_follower)**
