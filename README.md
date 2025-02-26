@@ -71,7 +71,7 @@ sudo systemctl restart docker
 ```
 Start docker.
 ```bash
-sudo docker-compose -f comp0244-go2/docker/compose_gpu.yml up -d
+sudo USER=$(whoami) docker-compose -f comp0244-go2/docker/compose_gpu.yml up -d 
 sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 ```
 ## 3. Build Project
