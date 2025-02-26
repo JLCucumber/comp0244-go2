@@ -55,9 +55,21 @@ def generate_launch_description():
         output='screen',
         parameters=[
             {"use_sim_time": use_sim_time},
-            ParameterFile(param_file_path, allow_substs=True)
+            # ParameterFile(param_file_path, allow_substs=True)
         ]
     )
+
+
+    waypoint_follower_node = Node(
+        package='cw1_team_2',
+        executable='cw1_waypoint_follower',
+        output='screen',
+        parameters=[{"use_sim_time": use_sim_time}]
+    )
+
+    waypoint_follower_group = GroupAction([
+        waypoint_follower_node
+    ])
 
     bug0_group = GroupAction([
         bug0_node
@@ -68,6 +80,7 @@ def generate_launch_description():
         declare_use_sim_time,
         declare_gazebo_world,
         environment_setup_launch,
+        waypoint_follower_group,
         bug0_group
     ])
 
