@@ -120,6 +120,14 @@ class CW1_WaypointFollower(WaypointFollower):
         if not self.is_odom_received:
             return
 
+        if self.is_arrive_waypoint:
+            twist_msg = Twist()
+            twist_msg.linear.x = 0.0 
+            twist_msg.angular.y = 0.0
+            twist_msg.angular.z = 0.0
+            self.cmd_vel_pub.publish(twist_msg)
+            return
+        
         # 1) Compute errors
         error_x = self.x_target - self.current_x
         error_y = self.y_target - self.current_y
@@ -159,29 +167,31 @@ class CW1_WaypointFollower(WaypointFollower):
         if abs(relative_angle) > math.pi * 0.9:
             twist_msg.linear.x = -min(math.hypot(vx, vy), self.max_velo)  # 直接后退
             twist_msg.angular.z = 0.0  # 方向不变
-            #self.get_logger().info("Moving Backward")
+            self.get_logger().info("Moving Backward")
         
         # 2️  urgent turn
-        elif  abs(relative_angle) > math.pi * 0.4 and 0.2 < distance_to_target < 0.3 :
-            twist_msg.linear.x = 0.1  # 前进 a little
-            twist_msg.linear.y = 0.0  # 不前进
-            twist_msg.angular.z = min(vorientation, self.max_velo)  # fast 旋转
+        elif abs(relative_angle) > math.pi * 0.5 and distance_to_target > 0.2 :  
+            twist_msg.linear.x = 0.1  # move forward a little
+            twist_msg.linear.y = 0.0  
+            twist_msg.angular.z = min(vorientation, self.max_angle_velo)  # fast 旋转
+            # self.last_turn_time = self.get_clock().now().nanoseconds
             self.get_logger().info("Urgent Turn")
         
         # 3️  正常行走逻辑 
         elif distance_to_target > 0.1:
             twist_msg.linear.x = min(math.hypot(vx, vy), self.max_velo)  # 保持最大速度
             twist_msg.angular.z = min(vtheta, self.max_angle_velo)  # 持续调整方向
-            #self.get_logger().info("Moving towards waypoint")
+            self.get_logger().info("Moving Forward")
 
         # 4 接近目标时，单独调整方向 
         else:
             twist_msg.linear.x = 0.0  # 停止前进
             if abs(error_orientation) > 0.05:
                 twist_msg.angular.z = min(vorientation, self.max_velo)
-                #self.get_logger().info(" Rotating to align with final orientation")
+                self.get_logger().info(" Rotating to align with final orientation")
             else:
-                # self.get_logger().info("Arrived at waypoint")
+                self.get_logger().info("Arrived at waypoint")
+                self.is_arrive_waypoint = True
                 pass
         
 
