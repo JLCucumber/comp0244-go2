@@ -8,7 +8,7 @@ mkdir /home/$USER/workspace && cd /home/$USER/workspace
 ```
 Clone the repo or extract folder `comp0244-go2` in the workspace.
 ```bash
-git clone --recursive [git@github.com](mailto:git@github.com):JLCucumber/comp0244-go2.git
+git clone --recursive git@github.com:JLCucumber/comp0244-go2.git
 ```
 ## 2. Docker Setup
 ### 2.1 Install Dependencies
@@ -71,7 +71,7 @@ sudo systemctl restart docker
 ```
 Start docker.
 ```bash
-docker-compose -f comp0244-go2/docker/compose_gpu.yml up -d
+sudo docker-compose -f comp0244-go2/docker/compose_gpu.yml up -d
 ```
 
 
