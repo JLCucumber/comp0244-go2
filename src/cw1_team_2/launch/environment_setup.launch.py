@@ -30,7 +30,7 @@ def generate_launch_description():
 
     declare_gazebo_world = DeclareLaunchArgument(
         'gazebo_world',
-        default_value='world_4',
+        default_value='world_1',
         description='Path to the Gazebo world file'
     )
 

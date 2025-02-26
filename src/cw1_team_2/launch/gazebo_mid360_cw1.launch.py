@@ -46,7 +46,7 @@ def generate_launch_description():
 
     declare_gazebo_world = DeclareLaunchArgument(
         'gazebo_world',
-        default_value='world_4',  # Default to true for simulation time
+        default_value='world_1',  # Default to true for simulation time
         description='Gazebo world name'
     )
 
