@@ -23,11 +23,14 @@ setup(
     entry_points={
         'console_scripts': [
             'cw1_edge_follower = cw1_team_2.task1.cw1_edge_follower:main',
+<<<<<<< HEAD
             'cw1_waypoint_follower = cw1_team_2.task1.cw1_waypoint_follower:main', 
-            'cw1_bug0 = cw1_team_2.task2.bug0:main',  
-            'cw1_bug1 = cw1_team_2.task3.bug1:main',         
+            'cw1_bug0 = cw1_team_2.task2.bug0:main',           
+=======
+            'cw1_waypoint_follower = cw1_team_2.task1.cw1_waypoint_follower:main',     
             'cw1_local_line_intermediate_processor = cw1_team_2.task1.cw1_local_line_intermediate_processor:main',
             'cw1_local_line_processor = cw1_team_2.task1.local_line_processor.py:main',       
+>>>>>>> 03d582a (Improve Waypoint Follower && Rearrange launch files)
         ],
     },
 )

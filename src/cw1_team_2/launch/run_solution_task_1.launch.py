@@ -17,6 +17,7 @@ def generate_launch_description():
 
     # Get the use_sim_time configuration to pass to nodes and included launch files
     use_sim_time = LaunchConfiguration("use_sim_time")
+    # gazebo_world = LaunchConfiguration("gazebo_world")
 
     # Include environment_setup.launch.py
     environment_setup_launch = IncludeLaunchDescription(
@@ -27,7 +28,9 @@ def generate_launch_description():
                 'environment_setup.launch.py'
             )
         ),
-        launch_arguments={'use_sim_time': use_sim_time}.items()
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            }.items()
     )
 
     # Node for cw1_edge_follower

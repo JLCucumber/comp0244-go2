@@ -28,8 +28,15 @@ def generate_launch_description():
         description='Use simulation (Gazebo) clock if true'
     )
 
+    declare_gazebo_world = DeclareLaunchArgument(
+        'gazebo_world',
+        default_value='world_4',
+        description='Path to the Gazebo world file'
+    )
+
     # Get the use_sim_time configuration to pass to nodes and included launch files
     use_sim_time = LaunchConfiguration("use_sim_time")
+    gazebo_world = LaunchConfiguration("gazebo_world")
 
     # ros2 launch go2_config gazebo_mid360.launch.py
     gazebo_launch = IncludeLaunchDescription(
@@ -43,6 +50,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={'use_sim_time': use_sim_time,
+                          'gazebo_world': gazebo_world,
                         # 'world_init_x': '-1.0',    # 你想要的新默认值
                         # 'world_init_y': '-3.0',
                         # 'world_init_z': '0.5',
@@ -105,6 +113,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         declare_use_sim_time,  # Declare use_sim_time
+        declare_gazebo_world,
         gazebo_group,
         mapping_group,
         local_map_group,

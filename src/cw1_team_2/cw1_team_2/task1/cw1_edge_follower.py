@@ -15,6 +15,9 @@ from visualization_msgs.msg import Marker
 from std_msgs.msg import ColorRGBA
 from edge_follower.edge_follower_node import EdgeFollowerNode
 from tf_transformations import quaternion_from_euler
+from ..utils.utils import save_to_csv
+import csv
+import os
 
 # import debugpy
 
@@ -31,10 +34,11 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         self.moving_forward = "counter-clockwise" # "clockwise" or "counter-clockwise"
         
         # Constants
-        self.SAFETY_MARGIN = 0.8  # meters
-        self.INCREMENT_DISTANCE = 0.7 # meters 0.7
-        self.UPDATE_RATE = 0.5  # seconds 0.5
+        self.SAFETY_MARGIN = 0.6  # meters
+        self.INCREMENT_DISTANCE = 0.5 # meters 0.7
+        self.UPDATE_RATE = 0.1  # seconds 0.5
         self.OVERSHOOT = 0.3  # meters
+        self.POINT_THRESHOLD = 0.8 # meters
         
         # State variables
         self.current_x = 0.0
@@ -43,6 +47,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         self.is_odom_received = False
         self.current_edges = []  # List of (start_point, end_point) tuples
         self.last_waypoint = None
+        self.last_closest_point = None
         
         # Publishers
         self.waypoint_pub = self.create_publisher(Pose2D, 'waypoint', 10)
@@ -90,9 +95,9 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         y = point[0] * s + point[1] * c + self.current_y
         theta = point[2] + self.current_orientation
         
-        self.get_logger().info(f"Current Pose: {self.current_x:.2f}, {self.current_y:.2f}, {self.current_orientation:.2f}")
-        self.get_logger().info(f"Goal Pose: {x:.2f}, {y:.2f}, {theta:.2f}")
-        self.get_logger().info(f"Distance Diff: {np.linalg.norm(np.array([x, y]) - np.array([self.current_x, self.current_y])):.2f}")
+        # self.get_logger().info(f"Current Pose: {self.current_x:.2f}, {self.current_y:.2f}, {self.current_orientation:.2f}")
+        # self.get_logger().info(f"Goal Pose: {x:.2f}, {y:.2f}, {theta:.2f}")
+        # self.get_logger().info(f"Distance Diff: {np.linalg.norm(np.array([x, y]) - np.array([self.current_x, self.current_y])):.2f}")
 
         return np.array([x, y, theta])
 
@@ -112,10 +117,22 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         
         return np.array([x, y])
     
+
+
     def line_callback(self, msg):
         """Process incoming line segments"""
+
+        # Print msg ID and timestamp
+        # self.get_logger().info(f"Received Marker ID: {msg.id}, Timestamp: {msg.header.stamp.sec}.{msg.header.stamp.nanosec}")
+
+        # save to csv
+        # path = "/workspace/comp0244-go2/src/cw1_team_2/cw1_team_2/data/edge_follower.csv"
+        # save_to_csv(msg, path)
+        
+
         if len(msg.points) < 2:
             return
+        # self.get_logger().info(f"Received Marker ID: {msg.id}, Timestamp: {msg.header.stamp.sec}.{msg.header.stamp.nanosec}")
 
         # Convert line points to numpy arrays
         points = [np.array([point.x, point.y]) for point in msg.points]
@@ -132,6 +149,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         """Find closest edge and calculate next waypoint"""
         
         if not self.current_edges:
+            self.get_logger().info("No edges detected!!!")
             return None
         
         # Feature: end-line "lag" - move in original direction for 1 more step
@@ -149,6 +167,8 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         closest_point = None
         min_distance = float('inf')
         closest_edge_index = 0
+
+            
         
         for i, edge in enumerate(self.current_edges):
             start_point, end_point = edge
@@ -170,21 +190,34 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             projection = np.dot(to_robot, edge_direction)
             projection = max(0, min(edge_length, projection))
             point_on_edge = start_point + projection * edge_direction
-            
-            # Calculate distance to edge
-            distance = np.linalg.norm(point_on_edge - robot_pos)
-            
-            if distance < min_distance:
-                min_distance = distance
-                closest_edge = edge
-                closest_point = point_on_edge
-                closest_edge_index = i
+
+            # distance between current point and the closest point in last time
+
+            if self.last_closest_point is None:
+                self.get_logger().info(f"last_closest_point is None. Initializing...")
+                distance_to_lasttime_closest_point = 0.0
+            else:
+                # self.get_logger().info(f"last_closest_point: {self.last_closest_point}")
+                distance_to_lasttime_closest_point = np.linalg.norm(self.last_closest_point - point_on_edge) 
+
+            if distance_to_lasttime_closest_point < self.POINT_THRESHOLD:        # condition 1
+                distance_to_robot = np.linalg.norm(point_on_edge - robot_pos) 
+                if distance_to_robot < min_distance:                             # condition 2
+                    min_distance = distance_to_robot
+                    closest_edge = edge
+                    closest_point = point_on_edge
+                    closest_edge_index = i
+
         
         if closest_edge is None:
+            self.get_logger().info("No closest edge found!!")
             return None
+        else:
+            self.closest_edge_point = closest_point     # Update current closest point (red dot)
 
-        # Store the closest point (red dot)
-        self.closest_edge_point = closest_point
+        # # Store the closest point (red dot)
+        # self.last_closest_point = closest_point # update last closest point
+
 
         # Now move clockwise along the continuous edge by INCREMENT_DISTANCE
         start_point, end_point = closest_edge
@@ -242,7 +275,6 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
                         current_point = self.current_edges[current_index][1]
                         self.get_logger().info(f"\033[94mSetting waypoint as the end of the line ({current_index}out of{len(self.current_edges)})\033[0m")
                         break
-                
         elif moving_forward == "counter-clockwise":
             
             while increment_left > 0 and current_index >= 0:
@@ -285,11 +317,13 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         # Store the incremented point (green dot)
         if self.reached_line_end == True:
             # Feature: end-line "lag" => assure robot find new lines 
-            self.incremented_point = current_point + edge_direction * self.OVERSHOOT
+            self.incremented_point = current_point - edge_direction * self.OVERSHOOT # edge_direction is clockwise, so set it negative
+            # self.incremented_point = current_point - self.overshoot_edge_direction * self.OVERSHOOT # edge_direction is clockwise, so set it negative
         else:
             print("setting increment point")
             self.incremented_point = current_point
-        
+    
+
         # Get the edge direction at the incremented point
         print(f"current_index: {current_index}")
         current_edge = self.current_edges[current_index]
@@ -348,7 +382,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
             point_marker.scale = Vector3(x=0.2, y=0.1, z=0.1)  # Arrow
 
             # point_marker.scale = Vector3(x=0.2, y=0.2, z=0.2)
-            point_marker.color = ColorRGBA(r=0.0, g=0.0, b=1.0, a=1.0)
+            point_marker.color = ColorRGBA(r=0.0, g=1.0, b=1.0, a=1.0)
             self.waypoint_marker_pub.publish(point_marker)
             
             # Closest point on edge (red)
@@ -385,6 +419,36 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
                 inc_point_marker.color = ColorRGBA(r=0.0, g=1.0, b=0.0, a=1.0)
                 self.waypoint_marker_pub.publish(inc_point_marker)        
         
+        # # Debug Usage: Draw the very start and the very end of the edge_marker
+        # very_start = self.current_edges[0][0]
+        # very_end = self.current_edges[-1][1]
+
+        # # new marker for very start and very end
+        # very_start_marker = Marker()
+        # very_start_marker.header.frame_id = "livox"
+        # very_start_marker.header.stamp = self.get_clock().now().to_msg()
+        # very_start_marker.type = Marker.CUBE
+        # very_start_marker.action = Marker.ADD
+        # very_start_marker.id = 3        
+        # very_start_marker.pose.position.x = float(very_start[0])
+        # very_start_marker.pose.position.y = float(very_start[1])
+        # very_start_marker.pose.position.z = 0.0
+        # very_start_marker.scale = Vector3(x=0.1, y=0.1, z=0.1)
+        # very_start_marker.color = ColorRGBA(r=0.0, g=1.0, b=1.0, a=1.0)
+        # self.waypoint_marker_pub.publish(very_start_marker)
+
+        # very_end_marker = Marker()
+        # very_end_marker.header.frame_id = "livox"
+        # very_end_marker.header.stamp = self.get_clock().now().to_msg()
+        # very_end_marker.type = Marker.CUBE
+        # very_end_marker.action = Marker.ADD
+        # very_end_marker.id = 4
+        # very_end_marker.pose.position.x = float(very_end[0])
+        # very_end_marker.pose.position.y = float(very_end[1])
+        # very_end_marker.pose.position.z = 0.0
+        # very_end_marker.scale = Vector3(x=0.1, y=0.1, z=0.1)
+        # very_end_marker.color = ColorRGBA(r=0.0, g=1.0, b=1.0, a=1.0)
+        # self.waypoint_marker_pub.publish(very_end_marker)
         
         # Detected edges
         edge_marker = Marker()
@@ -396,12 +460,16 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         
         edge_marker.scale.x = 0.05
         edge_marker.color = ColorRGBA(r=1.0, g=1.0, b=0.0, a=1.0)
-        
+
         for start_point, end_point in self.current_edges:
             edge_marker.points.append(Point(x=float(start_point[0]), y=float(start_point[1]), z=0.0))
             edge_marker.points.append(Point(x=float(end_point[0]), y=float(end_point[1]), z=0.0))
             
         self.edge_marker_pub.publish(edge_marker)
+        self.current_edges = []  # Clear edges
+
+        
+
         self.current_edges = []  # Clear edges
 
     def timer_callback(self):
@@ -411,6 +479,7 @@ class AdvancedEdgeFollowerNodes(EdgeFollowerNode):
         
         # Store last waypoint
         self.last_waypoint = getattr(self, "current_waypoint", None)   # waypoint dimension: [x, y, theta]
+        self.last_closest_point = getattr(self, "closest_edge_point", None)
 
         # Calculate next waypoint
         next_waypoint = self.find_next_waypoint()
