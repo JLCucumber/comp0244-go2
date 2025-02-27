@@ -177,7 +177,7 @@ sudo docker exec -it comp0244_team2 /bin/bash
 sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 ```
 
-1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task1.launch.py`
+1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task_1.launch.py`
     1. By default, it launches `world_1.world`. To specify a different preset environment or a custom one, please refer to the appendix.
 
 ## Task 2
@@ -193,7 +193,7 @@ sudo docker exec -it comp0244_team2 /bin/bash
 sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 ```
 
-1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task2.launch.py`
+1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task_2.launch.py`
     1. By default, it launches `world_1.world`. To specify a different preset environment or a custom one, please refer to the appendix.
 
 （Terminal #2）
@@ -223,7 +223,7 @@ sudo docker exec -it comp0244_team2 /bin/bash
 sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 ```
 
-1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task3.launch.py`
+1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task_3.launch.py`
     1. By default, it launches `world_1.world`. To specify a different preset environment or a custom one, please refer to the appendix.
 
 （Terminal #2）
