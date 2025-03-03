@@ -13,7 +13,7 @@
 
 ---
 
-# Lab X
+# Lab 6
 ###### 1. Installation the package
 ```bash
 cd /usr/app/comp0244_ws/cmp0244-go2
@@ -59,30 +59,46 @@ You can add ```/planner/path``` in the RVIZ. You can see the pre-set path (red) 
 
 ### Real-World Robot
 ###### 1. Run the path_follower.py and test whether the robot can move along an eight shape
+Terminal 1:
 ```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run waypoint_follower path_follower /utlidar/robot_odom
+Terminal 2:
+```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run waypoint_follower publish_eight_shape_path 
 ```
-Another terminal
+Terminal 3:
 ```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
 ```
 ###### 2. Run the goalpose_follower.py and test whether the robot can move
+Terminal 1:
 ```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run waypoint_follower goalpose_follower /utlidar/robot_odom
 ```
-Another terminal
+Terminal 2:
 ```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
 ```
 Open the RVIZ and provide a goal pose. And then press ```Ctrl+C``` to stop the goalpose_follower.py
 ###### 3. Run the path_follower.py and test whether the robot can move along an eight shape
+Terminal 1:
 ```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run waypoint_follower path_follower /utlidar/robot_odom
+```
+Terminal 2:
+```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run waypoint_follower publish_eight_shape_path 
 ```
-Another terminal
+Terminal 3:
 ```bash
+source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
 ```
 **NOTE**: If you want to try your own state estimation algorithm, please change ```/utlidar/robot_odom``` with your own odometry topic.
