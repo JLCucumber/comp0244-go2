@@ -20,7 +20,7 @@ Please change the ```bag_file``` in the script: ```extract_data_real_robot.py```
 cd /usr/app/comp0244_ws/
 source /opt/ros/humble/setup.sh
 source /unitree_ros2/setup.sh
-python extract_data_real_robot.py
+python3 extract_data_real_robot.py
 ```
 
 # Lab 6
