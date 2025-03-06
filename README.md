@@ -168,6 +168,12 @@ ros2 bag record /lowstate /sportmodestate
 ```
 Please move the robot. If enough data are record, please enter ```Enter ctrl+C``` to exit. The rosbag will be stored in the folder.
 
+###### 4. Check ROS message type
+```bash
+ros2 interface show unitree_go/msg/LowState
+ros2 interface show unitree_go/msg/SportModeState
+```
+
 # Lab 4
 ## Real Robot Cmd Velocity
 **Date:** 06/02/2025
