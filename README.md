@@ -14,7 +14,7 @@
 ---
 
 # Instruction
-###### Extracting ROSbag (*.db3) using python
+### Extracting ROSbag (*.db3) using python
 Please change the ```bag_file``` in the script: ```extract_data_real_robot.py```
 ```python
 cd /usr/app/comp0244_ws/
