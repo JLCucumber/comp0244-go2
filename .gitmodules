@@ -19,3 +19,6 @@
 [submodule "src/edge_follower"]
 	path = src/edge_follower
 	url = git@github.com:COMP0244-S25/edge_follower.git
+[submodule "unitree_ros2"]
+	path = unitree_ros2
+	url = git@github.com:EthanJia0627/unitree_ros2.git
