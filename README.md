@@ -19,7 +19,7 @@ Please change the ```bag_file``` in the script: ```extract_data_real_robot.py```
 ```python
 cd /usr/app/comp0244_ws/
 source /opt/ros/humble/setup.sh
-source /unitree_ros2/setup.sh
+source unitree_ros2/setup.sh
 python3 extract_data_real_robot.py
 ```
 
@@ -60,8 +60,9 @@ Press ```Ctrl+C``` to stop the goal pose follower.
 ```bash
 cd /usr/app/comp0244_ws/comp0244-go2
 source install/setup.bash
+ros2 run waypoint_follower odometry_conversion.py
 ros2 run waypoint_follower path_follower.py
-ros2 run waypoint_follower publish_eight_shape_path.py
+ros2 run waypoint_follower publish_ellipse_shape.py
 ```
 You can add ```/planner/path``` in the RVIZ. You can see the pre-set path (red) and the path (green) traversed by the robot.
 
@@ -77,7 +78,7 @@ ros2 run waypoint_follower path_follower /utlidar/robot_odom
 Terminal 2:
 ```bash
 source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower publish_eight_shape_path 
+ros2 run waypoint_follower publish_ellipse_shape 
 ```
 Terminal 3:
 ```bash
