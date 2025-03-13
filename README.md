@@ -60,6 +60,7 @@ Press ```Ctrl+C``` to stop the goal pose follower.
 ```bash
 cd /usr/app/comp0244_ws/comp0244-go2
 source install/setup.bash
+rviz2 -d /usr/app/comp0244_ws/comp0244-go2/src/waypoint_follower/rviz/path_following.rviz
 ros2 run waypoint_follower odometry_conversion.py
 ros2 run waypoint_follower path_follower.py
 ros2 run waypoint_follower publish_ellipse_shape.py
