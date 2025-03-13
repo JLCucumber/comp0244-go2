@@ -56,15 +56,21 @@ Press ```Ctrl+C``` to stop the goal pose follower.
 
 <img src="media/goalpose_follower.png" alt="goalpose_follower" width="50%">
 
-###### 3. Run the path_follower.py and test whether the robot can move along an eight shape
+###### 3. Run the path_follower.py and test whether the robot can move along a shape
 ```bash
 cd /usr/app/comp0244_ws/comp0244-go2
 source install/setup.bash
 rviz2 -d /usr/app/comp0244_ws/comp0244-go2/src/waypoint_follower/rviz/path_following.rviz
 ros2 run waypoint_follower odometry_conversion.py
 ros2 run waypoint_follower path_follower.py
-ros2 run waypoint_follower publish_ellipse_shape.py
 ```
+Publish different level of trajectory
+```bash
+ros2 run waypoint_follower publish_ellipse_shape.py   # easy
+ros2 run waypoint_follower publish_eight_shape.py     # middle
+ros2 run waypoint_follower publish_cosince_shape.py   # hard
+```
+
 You can add ```/planner/path``` in the RVIZ. You can see the pre-set path (red) and the path (green) traversed by the robot.
 
 <img src="media/path_follower.png" alt="path_follower" width="50%">
