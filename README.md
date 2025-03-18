@@ -108,12 +108,14 @@ In the same terminal, build the package before running the code.
 ```bash
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 echo "source /workspace/comp0244-go2/install/setup.bash" >> ~/.bashrc
+echo "source /workspace/comp0244-go2/unitree_ros2/setup.sh" >> ~/.bashrc
 source /opt/ros/humble/setup.bash
 cd /workspace/comp0244-go2/src/livox_ros_driver2 && ./build.sh humble
 cd /workspace/comp0244-go2 && colcon build
 cd /workspace/comp0244-go2/unitree_ros2/cyclonedds_ws && colcon build --packages-select cyclonedds
 colcon build
 source /workspace/comp0244-go2/install/setup.bash
+source /workspace/comp0244-go2/unitree_ros2/setup.sh
 ```
 
 
