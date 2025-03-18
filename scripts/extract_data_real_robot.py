@@ -130,7 +130,7 @@ def extract_required_data(bag_path, effort_csv, imu_csv, contacts_csv, contacts_
     rclpy.shutdown()
 
 if __name__ == '__main__':
-    bag_file = "/usr/app/comp0244_ws/data_comp0244/rosbag2_2025_02_22-02_23_45/rosbag2_test_output/rosbag2_test_output_0.db3"  # Replace with actual bag file path
+    bag_file = "/workspace/CW2_part1_testing_rosbag/output_bag/output_bag_0.db3"  # Replace with actual bag file path
     effort_csv = "output_effort.csv"  # Joint Efforts
     imu_csv = "output_imu.csv"  # IMU Data
     contacts_csv = "output_contacts.csv"  # Foot Contact Data
