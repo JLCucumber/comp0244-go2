@@ -10,18 +10,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 # Contribution  (Time & Percentage)
 
-- Hongbo Li (55 Hours)
-    
-    Implemented Edge Following algorithum adjusting Waypoint Follower and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.  
-    
-- Yiyang Jia  (50 Hours)
-    
-    Implemented Bug0 and Bug1 algorithum and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.
-    
-- Xinyun Mo (30 Hours)
-    
-    Testing the pipeline, responsible for refining report.
-    
+- Hongbo Li (Task1(30h) + Task2(12.5h) + Task3 (12.5h)) => 55 Hours in total
+
+  Implemented Edge Following algorithum adjusting Waypoint Follower and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.  
+
+- Yiyang Jia  (Task1(10h) + Task2(20h) + Task3 (20h)) => 50 Hours in total
+
+  Implemented Bug0 and Bug1 algorithum and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.
+
+- Xinyun Mo  (Task1(10h) + Task2(10h) + Task3 (10h)) => 30 Hours in total
+
+  Testing the pipeline, responsible for refining report.
 
 # Environment Set-up
 
