@@ -30,14 +30,17 @@ class FootContactEstimator:
         contacts = []
         for leg_idx in range(4):
             torque = torques[leg_idx]
+            
             # 平滑数据
             self.torque_history[leg_idx].append(torque)
             if len(self.torque_history[leg_idx]) > self.window_size:
                 self.torque_history[leg_idx].pop(0)
             smoothed_torque = sum(self.torque_history[leg_idx]) / len(self.torque_history[leg_idx])
+            
             # 应用滞后法
             predicted = self.hysteresis_fsm(smoothed_torque, leg_idx)
             contacts.append(bool(predicted))
+        
         self.csv_writer.writerow([timestamp] + contacts)
 
     def __del__(self):
