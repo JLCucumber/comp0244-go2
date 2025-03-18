@@ -1,1302 +1,398 @@
-# COMP0244 Labs
-[Lab 6: Real Robot Path Following](#Lab-X)
+# License
 
-[Lab 5: Real Robot ROS bag Record](#Lab-5)
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-[Lab 4: Real Robot Cmd Velocity](#Lab-4)
+# Author
 
-[Lab 3: Wall Following](#Lab-3)
+- Hongbo Li (Code)
+- Yiyang Jia (Code)
+- Xinyun Mo (Testing)
 
-[Lab 2: Waypoints, Wall Localization, Wall Following](#Lab-2)
+# Contribution  (Time & Percentage)
 
-[Lab 1: Tutorial of Environment Setup of Unitree GO2](#Lab-1)
+- Hongbo Li (Task1(30h) + Task2(12.5h) + Task3 (12.5h)) => 55 Hours in total
 
----
+  Implemented Edge Following algorithum adjusting Waypoint Follower and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.  
 
-# Instruction
-### Extracting ROSbag (*.db3) using python
-Please change the ```bag_file``` in the script: ```extract_data_real_robot.py```
-```python
-cd /usr/app/comp0244_ws/
-source /opt/ros/humble/setup.sh
-source unitree_ros2/setup.sh
-python3 extract_data_real_robot.py
-```
+- Yiyang Jia  (Task1(10h) + Task2(20h) + Task3 (20h)) => 50 Hours in total
 
-# Lab 6
-###### 1. Installation the package
-```bash
-cd /usr/app/comp0244_ws/cmp0244-go2
-colcon build
-source install/setup.bash
-```
+  Implemented Bug0 and Bug1 algorithum and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.
 
-### Simulation
-###### 1. Start the simulation
-```bash
-cd /usr/app/comp0244_ws/tutorial_env_go2
-source install/setup.bash
-ros2 launch go2_config gazebo_mid360.launch.py rviz:=true
-```
-Run the FAST-LIO
-```bash
-cd /usr/app/comp0244_ws/tutorial_env_go2
-source install/setup.bash
-ros2 launch fast_lio mapping.launch.py config_file:=unitree_go2_mid360.yaml
-```
-###### 2. Run the goalpose_follower.py and test whether the robot can move
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash
-ros2 run waypoint_follower goalpose_follower
-```
-You can see the arrow (gree) given by the user and the path (green) traversed by the robot. 
+- Xinyun Mo  (Task1(10h) + Task2(10h) + Task3 (10h)) => 30 Hours in total
 
-Press ```Ctrl+C``` to stop the goal pose follower.
+  Testing the pipeline, responsible for refining report.
 
-<img src="media/goalpose_follower.png" alt="goalpose_follower" width="50%">
+# Environment Set-up
 
-###### 3. Run the path_follower.py and test whether the robot can move along an eight shape
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash
-ros2 run waypoint_follower odometry_conversion.py
-ros2 run waypoint_follower path_follower.py
-ros2 run waypoint_follower publish_ellipse_shape.py
-```
-You can add ```/planner/path``` in the RVIZ. You can see the pre-set path (red) and the path (green) traversed by the robot.
+### BEFORE YOU START
 
-<img src="media/path_follower.png" alt="path_follower" width="50%">
+***The following tutorial has only been tested on Ubuntu 22.04 system.***
 
-### Real-World Robot
-###### 1. Run the path_follower.py and test whether the robot can move along an eight shape
-Terminal 1:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower path_follower /utlidar/robot_odom
-```
-Terminal 2:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower publish_ellipse_shape 
-```
-Terminal 3:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
-```
-###### 2. Run the goalpose_follower.py and test whether the robot can move
-Terminal 1:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower goalpose_follower /utlidar/robot_odom
-```
-Terminal 2:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
-```
-Open the RVIZ and provide a goal pose. And then press ```Ctrl+C``` to stop the goalpose_follower.py
-###### 3. Run the path_follower.py and test whether the robot can move along an eight shape
-Terminal 1:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower path_follower /utlidar/robot_odom
-```
-Terminal 2:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower publish_eight_shape_path 
-```
-Terminal 3:
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
-```
-**NOTE**: If you want to try your own state estimation algorithm, please change ```/utlidar/robot_odom``` with your own odometry topic.
+## 1. Create Project
 
-**NOTE**: If you want to try your own path planning algorithm, please change ```ros2 run waypoint_follower publish_eight_shape_path``` with your own program and publish the same topic.
-
-# Lab 5
-## Real Robot ROS bag Record
-**Date:** 27/02/2025
-
-**Goal:** Record Sportmode state includes position, velcity, foot position, and other motion states of the robot.
-
-**Document:** https://support.unitree.com/home/en/developer/ROS2_service
-
-### Operating the Robot Using Your Own External Computer
-###### 1. Following the tutorial to setup your computer network and install necessary package
-[Tutorial Link](https://support.unitree.com/home/zh/developer/ROS2_service)
-Remember to use **humble** in commands, not **foxy**. Here are the summary of these commands (open the docker environment):
-```bash
-cd /usr/app/comp0244_ws/
-git clone https://github.com/unitreerobotics/unitree_ros2
-apt install net-tools -y
-apt install gedit
-apt update && apt install ros-humble-rmw-cyclonedds-cpp && apt install ros-humble-rosidl-generator-dds-idl -y
-cd unitree_ros2/cyclonedds_ws/src/
-git clone https://github.com/ros2/rmw_cyclonedds -b humble && git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x
-cd ../
-colcon build --packages-select cyclonedds
-source /opt/ros/humble/setup.bash
-colcon build
-```
-Use the cable to connect the robot and your computer, and then configure the network follow the tutorial [here](https://support.unitree.com/home/zh/developer/ROS2_service)
-
-Check connection
-```
-ping 192.168.123.99
-```
-And modify the ```/usr/app/comp0244_ws/unitree_ros2/setup.sh``` with the below command.
-
-**Note**: ```eno2``` is the network card of your computer and should change:
-```
-#!/bin/bash
-echo "Setup unitree ros2 environment"
-source /opt/ros/humble/setup.bash
-source /usr/app/comp0244_ws/unitree_ros2/cyclonedds_ws/install/setup.bash
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
-                            <NetworkInterface name="eno2" priority="default" multicast="default" />
-                        </Interfaces></General></Domain></CycloneDDS>'
-```
-Setup unitree ros2 environment
-```
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-```
-
-###### 2. Open a new terminal and check ROS message after installing the below
-```bash
-source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 topic echo /sportmodestate
-```
-###### 3. Record ROS bag
-```bash
-mkdir /usr/app/comp0244_ws/data_comp0244
-cd /usr/app/comp0244_ws/data_comp0244
-ros2 bag record /lowstate /sportmodestate
-```
-Please move the robot. If enough data are record, please enter ```Enter ctrl+C``` to exit. The rosbag will be stored in the folder.
-
-###### 4. Check ROS message type
-```bash
-ros2 interface show unitree_go/msg/LowState
-ros2 interface show unitree_go/msg/SportModeState
-```
-
-# Lab 4
-## Real Robot Cmd Velocity
-**Date:** 06/02/2025
-
-**Goal:** Move the real robot via command velocities: _we will see how to use the real robot in the lab.__
-
-### Safety
-1. Read carefully the instructions shared in moodle named: OPS-G07-SOP-Go2
-2. Make sure you understand how to insert a battery and how to turn the robot on/off.
-3. Make sure you understand how to use the two external controllers to move the robot, to stop it, and put it down.
-4. Make sure you need at least 3 people operating the robot: one controlling via the terminal, the other having the two controllers, and one on the crane.
-5. Do not put at any case fingers/jewleries/hair close to robot motors.
-6. Long and loose hair must be contained, Rings and jewellery must not be worn.	Budges or any other items risking being trapped in the motors must not be worn.
-7. Teams will be operating one by one.
-
-### Operating the Robot
-To operate the robot we will use two computers:
-
-#### Team 1: UCL Operator PC3, GO2 No.1, and Student's Computer
-##### 1. Turn on the GO2 No.1
-Install the battery, double-click the batter switch, and wait for about 30s to make sure the robot to be started
-
-##### 2. UCL Operator PC3: 
-
-###### 2.1. Connect to the wifi Arvin with the password (see the note on the screen).
-
-###### 2.2. Open a new terminal:
-```bash
-source ~/opt/ros/foxy/setup.bash
-source ~/Documents/ros2_ws/install/setup.bash
-export ROBOT_IP="172.20.10.6"
-export CONN_TYPE="webrtc"
-ping 172.20.10.6
-```
+Create your workspace and enter directory.
 
 ```bash
-ros2 launch go2_robot_sdk test.launch.py
-```
-
-##### 3. Student's computer:
-
-###### 3.1. Connect to the wifi Arvin with the password (see the note on the screen).
-
-###### 3.2. Open the docker environment:
-```bash
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-source /opt/ros/humble/setup.bash
-export ROBOT_IP="172.20.10.6"
-export CONN_TYPE="webrtc"
-ping 172.20.10.6
-```
-
-###### 3.3 Publish the velocity on the topic /cmd_vel to have the robot walk. 
-NOTE: not exceed 0.4m/s for linear velocity.
-```bash
-ros2 topic pub /cmd_vel -r 10 geometry_msgs/msg/Twist '{
-  linear: {x: 0.2, y: 0.0, z: 0.0},
-  angular: {x: 0.0, y: 0.0, z: 0.0}
-}'
+mkdir /home/$USER/workspace && cd /home/$USER/workspace
 
 ```
-###### 3.4 IMPORTANT NOTE:
-```bash
-Do not forget to DISCONNECT the wifi once you finish the task
-```
 
-#### Team 2: UCL Operator PC2, GO2 No.2, and Student's Computer
-##### 1. Start the GO2 No.2:
-Install the battery, double-click the batter switch, and wait for about 30s to make sure the robot to be started
-
-##### 2. UCL Operator PC2: 
-
-###### 2.1. Connect to the wifi jjiaoiPhone with the password (see the note on the screen).
-
-###### 2.2. Open a new terminal:
-```bash
-conda deactivate
-source ~/Documents/ros2_ws/install/setup.bash
-export ROBOT_IP="172.20.10.3"
-export CONN_TYPE="webrtc"
-ping 172.20.10.3
-```
-```bash
-ros2 launch go2_robot_sdk test.launch.py
-```
-
-##### 3. Student's computer:
-
-###### 3.1 Connect to the wifi jjiaoiPhone with the password (see the note on the screen).
-
-###### 3.2 Open the docker environment:
-```bash
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-source /opt/ros/humble/setup.bash
-export ROBOT_IP="172.20.10.3"
-export CONN_TYPE="webrtc"
-ping 172.20.10.3
-```
-
-###### 3.3 Publish the velocity on the topic /cmd_vel to have the robot walk.
-NOTE: not exceed 0.4m/s for linear velocity.
-```bash
-ros2 topic pub /cmd_vel -r 10 geometry_msgs/msg/Twist '{
-  linear: {x: 0.2, y: 0.0, z: 0.0},
-  angular: {x: 0.0, y: 0.0, z: 0.0}
-}'
-
-```
-###### 3.4 IMPORTANT NOTE:
-```bash
-Do not forget to DISCONNECT the wifi once you finish the task
-```
-
-### Tasks
-1. Write a script that makes the robot move in a circle in the lab.
-2. Write a script that makes the robot move two time in a circle in the lab and then stop.
-
----
-
-# Lab 3
-## Wall Following
-**Date:** 30/01/2025
-
-**Goal:** Move the Robot via waypoints and wall localization to follow the walls of a convex obstacle: _we will check how to use the lidar-based fit lines of an obstacle to follow the wall/obstacle.__
-
-### Pull recursively all repos and enter the docker to re-compile
-Open the first terminal to pull recursively all repos, re-compile, and load the gazebo environment:
-```bash
-cd /home/$USER/comp0244_ws/comp0244-go2
-git pull --recurse-submodules
-cd /home/$USER/comp0244_ws/comp0244-go2/src/FAST_LIO
-git checkout -f && git checkout comp0244 && git pull
-cd /home/$USER/comp0244_ws/comp0244-go2/src/waypoint_follower
-git checkout -f && git checkout master && git pull
-cd /home/$USER/comp0244_ws/comp0244-go2/src/local_map_creator
-git checkout -f && git checkout master && git pull
-cd /home/$USER/comp0244_ws/comp0244-go2/src/edge_follower
-git checkout -f && git checkout master && git pull
-cd /home/$USER/comp0244_ws/comp0244-go2
-```
+Clone the repo or extract folder `comp0244-go2` in the workspace. 
 
 ```bash
-xhost +
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
+git clone --recursive git@github.com:JLCucumber/comp0244-go2.git
+
 ```
 
-```bash
-source /opt/ros/humble/setup.bash
-sudo apt-get install ros-humble-rviz2 ros-humble-turtle-tf2-py ros-humble-tf2-ros ros-humble-tf2-tools
-cd /usr/app/comp0244_ws/comp0244-go2
-colcon build
-source install/setup.bash
-```
+## 2. Docker Setup
 
-## Wall Follower
-### Terminal 1: Launch Gazebo, SLAM, Waypoint Follower
-```bash
-xhost +
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-cd /usr/app/comp0244_ws/comp0244-go2/scripts
-ros2 launch robot_launch.launch.py
-```
+### 2.1 Install Dependencies
 
-### Terminal 2: Publish a waypoint {x, y, theta} (w.r.t the odom frame)
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 topic pub /waypoint geometry_msgs/Pose2D "{x: -1.0, y: 0.0, theta: 0.0}" -r 1
-Ctrl+C
-```
-
-### Terminal 2: Follow the wall
-```bash
-ros2 run edge_follower edge_follower
-```
-### Tasks (we assume convex obstacles)
-1. Make the robot work more smoothly based on the lines to follow the cylinder.
-2. Move the robot to {x: 0.0, y: 1.0, theta: 3.14} and make it see and turn into the corners and keep following the wall cw.
-
----
-
-# Lab 2
-## Waypoints, Wall Localization
-**Date:** 23/01/2025
-
-**Goal:** Move the Robot via Waypoints, Wall Localization, and Wall Following: _we will first understand how to move the robot to a waypoint (x,y,θ). We will check how to use the lidar data to fit lines to the point cloud of a wall._
-
-### Pull recursively all repos and enter the docker to re-compile
-Open the first terminal to pull recursively all repos, re-compile, and load the gazebo environment:
-```bash
-cd /home/$USER/comp0244_ws/comp0244-go2/
-git pull --recurse-submodules
-cd /home/$USER/comp0244_ws/comp0244-go2/src/waypoint_follower
-git checkout master
-git pull
-cd /home/$USER/comp0244_ws/comp0244-go2/src/local_map_creator
-git checkout master
-git pull
-sudo rm -rf build log install
-```
-
-```bash
-xhost +
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-```
-
-```bash
-source /opt/ros/humble/setup.bash
-cd /usr/app/comp0244_ws
-cd comp0244-go2/src/livox_ros_driver2 && ./build.sh humble
-cd /usr/app/comp0244_ws/comp0244-go2
-colcon build
-source install/setup.bash
-```
-
-## Waypoint Follower
-### Terminal 1: Launch Gazebo and RViz
-```bash
-xhost +
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 launch go2_config gazebo_mid360.launch.py
-```
-### Terminal 2: Launch FAST-LIO SLAM
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 launch fast_lio mapping.launch.py config_file:=unitree_go2_mid360.yaml
-```
-
-### Terminal 3: Launch Waypoint Follower
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 run waypoint_follower waypoint_follower
-```
-
-### Terminal 4: Publish a waypoint {x, y, theta} (w.r.t the odom frame)
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 topic pub /waypoint geometry_msgs/Pose2D "{x: 4.0, y: -2.0, theta: 0.0}" -r 1
-```
-
-### Task
-1. Move the robot to (x,y) = (0.0,1.2)
-2. Publish waypoints that move the robot around the obstacle you are facing, and end up in the same pose.
-3. Make the final orientation angle goal work in the code, and make it go to (0.0, 1.2, 1.6)
-
-## Line Detection
-### Terminal 1: Launch Gazebo and RViz
-```bash
-xhost +
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 launch go2_config gazebo_mid360.launch.py
-```
-
-### Terminal 2: Launch FAST-LIO SLAM
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 launch fast_lio mapping.launch.py config_file:=unitree_go2_mid360.yaml
-```
-
-### Terminal 3: Launch Waypoint Follower
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 run waypoint_follower waypoint_follower
-```
-
-### Terminal 4: Publish a waypoint {x, y, theta} (w.r.t the odom frame)
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-source /usr/app/comp0244_ws/comp0244-go2/install/setup.bash
-ros2 topic pub /waypoint geometry_msgs/Pose2D "{x: 0.0, y: 1.2, theta: 1.6}" -r 1
-```
-
-### Terminal 5: Launch Local Map Creator
-
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash
-ros2 run local_map_creator local_map_creator
-```
-
-To visualize the local map, open the rviz2 window opened by step 1 and do the following:
-- Switch the Global Options to `Fixed Frame: livox`
-- Add the `Marker` topic `/local_map_points`
-- Add the `Marker` topic `/local_map_lines`
-
-### Task
-1. Understand what each parameter is doing and tune them accordingly to get lines align with the point clouds when straight walls and corners appear.
-
----
-
-# Lab 1
-## Tutorial of Environment Setup of Unitree GO2
-- [Overview](#overview)
-- [Installation on Ubuntu 20+](#installation-on-ubuntu)
-- [Installation on Windows 11+](#installation-on-windows)
-- [Installation on AppleSilicon](#installation-on-apple)
-- [Attaching to a Running Docker Container in VS Code](#Attaching-to-a-Running-Docker-Container-in-VS-Code)
-
-## Overview
-
-This repository provides an environment that can be run using Docker. The environment is designed to run specific software or tasks, and the following instructions will guide you through installing dependencies, setting up the Docker container, and running the necessary files.
-
-## Setup your SSH Key in your Github
-##### Step 0: Generate a new SSH key. Open a terminal and run:
-```bash
-ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-```
-
-For Mac you need also to do:
-```bash
-ssh-add --apple-use-keychain ~/.ssh/id_ed25519                    
-```
-
-Then, add the SSH key to your GitHub account (New SSH key):
-```bash
-cat ~/.ssh/id_rsa.pub
-```
-
-## Installation on Ubuntu
-##### Step 1: Open a terminal and clone the repo:
-```bash
-mkdir /home/$USER/comp0244_ws
-cd /home/$USER/comp0244_ws
-git clone --recursive git@github.com:COMP0244-S25/comp0244-go2.git
-```
-
-
-#### Environment: ROS2-Humble
-##### Step 2: In the same terminal, download the Docker (https://docs.docker.com/engine/install):
 ```bash
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
 sudo apt-get update
 sudo apt-get install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo curl -fsSL <https://download.docker.com/linux/ubuntu/gpg> -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+echo \\
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] <https://download.docker.com/linux/ubuntu> \\
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \\
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 sudo apt-get update
-
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-##### Step 3: In the same terminal, download the docker images (click [here](https://aws.amazon.com/docker) to understand docker):
-```bash
-sudo docker pull jjiao/comp0244:unitree-go-ros2-humble
-sudo docker tag jjiao/comp0244:unitree-go-ros2-humble comp0244:unitree-go-ros2-humble
-```
-
-##### Step 4: In the same terminal, enable the display:
-```bash
 sudo apt-get install x11-xserver-utils
 xhost +
 ```
-Note that everytime you restart your computer you will probably need to run the xhost + command above.
 
+### 2.2 Install Docker
 
-##### Step 5: In the same terminal, create the docker container:
-```bash
-sudo docker run -it -e DISPLAY -e QT_X11_NO_MITSHM=1 -e XAUTHORITY=/tmp/.docker.xauth \
--v /home/$USER/comp0244_ws:/usr/app/comp0244_ws \
---network host \
---name comp0244_unitree comp0244:unitree-go-ros2-humble /bin/bash
-```
+The following are instructions of different versions of Docker based on CPU and GPU for you to choose, respectively. In order to better simulate, you can choose GPU version to install
 
-##### Step 6: Exit the docker and start your docker environment
-```bash
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-```
+### i. CPU Version
 
-### Run the Unitree-GO2 Simulation (in the docker)
-##### Step 7: Build the package:
-```bash
-source /opt/ros/humble/setup.bash
-cd /usr/app/comp0244_ws
-cd comp0244-go2/src/livox_ros_driver2 && ./build.sh humble
-cd /usr/app/comp0244_ws/comp0244-go2
-colcon build
-source install/setup.bash
-```
+In the same terminal, download the docker images.
 
-##### Step 8: Run the package with running the [FAST-LIO SLAM](https://github.com/hku-mars/FAST_LIO):
-```bash
-ros2 launch go2_config gazebo_mid360.launch.py rviz:=true
-```
-You can obtain ground truth poses (base_link with respect to the world):
-```bash
-ros2 topic echo /odom/ground_truth
-```
-
-**NOTE:** if you change configuration the files such as *.xacro/, *.rviz, ... , please build the package once again:
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-colcon build
-source install/setup.bash
-```
-<!-- More examples are shown in this [repo](https://github.com/COMP0244-S25/unitree-go2-ros2) -->
-
-### Run the [FAST-LIO SLAM](https://github.com/hku-mars/FAST_LIO) (in the docker)
-##### Step 9: Open a second terminal and start your docker environment
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-```
-
-##### Step 10: Run the package
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash 
-ros2 launch fast_lio mapping.launch.py config_file:=unitree_go2_mid360.yaml
-```
-
-##### Step 11: Check FAST-LIO's poses 
-<!-- (body with respect to camera_init) -->
-```bash
-ros2 topic echo /Odometry
-```
-
-### Move the Robot:
-##### Step 12: Open a second terminal and start your docker environment
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash 
-```
-
-##### Step 13:
-Using your keyboard to move your robot.
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
-
-##### Step 14
-Use your keyboard to move the robot:
-```
-u                           i (move forward)    o 
-j (counterclockwise turn)   k (stop)            l (clockwise turn)
-m                           , (move backward)   .
-```
-
-#### Step 15:
-Instead of Steps 13 and 14, we can move the robot (e.g., stop, move forward, move backward, clock-wise turn, couterwise turn) via commanding the velocity:
-
-##### Turn clockwise
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: -1.0
-' -r 0.5
-```
-##### Turn counter-clockwise
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 1.0
-' -r 0.5
-```
-##### Move backwards
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: -0.3
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 1
-```
-##### Move forward
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.3
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 0.5
-```
-##### Stop moving
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 0.5
-```
-
-## Installation on Windows
-##### Step 1: Open a terminal (wsl) and clone the repo:
-```bash
-mkdir /home/$USER/comp0244_ws
-cd /home/$USER/comp0244_ws
-git clone --recursive git@github.com:COMP0244-S25/comp0244-go2.git
-```
-
-#### Environment: ROS2-Humble
-##### Step 2: In the same terminal, download the Docker (https://docs.docker.com/engine/install):
-```bash
-for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-sudo apt-get update
-
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-##### Step 3: In the same terminal, download the docker images (click [here](https://aws.amazon.com/docker) to understand docker):
 ```bash
 sudo docker pull jjiao/comp0244:unitree-go-ros2-humble
 sudo docker tag jjiao/comp0244:unitree-go-ros2-humble comp0244:unitree-go-ros2-humble
+
 ```
 
-##### Step 4: Configure WSLg (Required for Windows 11 WSL2 users):
-```bash
-echo '# WSLg Configuration
-export DISPLAY=:0
-export WAYLAND_DISPLAY=wayland-0
-export XDG_RUNTIME_DIR=/run/user/1000
-export PULSE_SERVER=/run/user/1000/pulse/native' >> ~/.bashrc
-
-source ~/.bashrc
-```
-
-Verify display setup:
-```bash
-# Install x11-apps for testing
-apt-get update && apt-get install -y x11-apps
-
-# Test the display (should open a window with moving eyes)
-xeyes
-
-# If the test is successful, you can proceed with the tutorial
-# Press Ctrl+C to close xeyes
-```
-
-##### Step 5: In the same terminal, create the docker container:
-```bash
-sudo docker run -it \
--e DISPLAY=$DISPLAY \
--e WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
--e XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR \
--e PULSE_SERVER=$PULSE_SERVER \
--v /tmp/.X11-unix:/tmp/.X11-unix \
--v /mnt/wslg:/mnt/wslg \
--v /usr/lib/wsl:/usr/lib/wsl \
--v /home/$USER/comp0244_ws:/usr/app/comp0244_ws \
---network host \
---name comp0244_unitree comp0244:unitree-go-ros2-humble /bin/bash
-```
-
-##### Step 6: Exit the docker and start your docker environment
-```bash
-sudo docker container start comp0244_unitree
-sudo docker exec -it comp0244_unitree /bin/bash
-```
-
-### Run the Unitree-GO2 Simulation (in the docker)
-##### Step 7: Build the package:
-```bash
-source /opt/ros/humble/setup.bash
-cd /usr/app/comp0244_ws
-cd comp0244-go2/src/livox_ros_driver2 && ./build.sh humble
-cd /usr/app/comp0244_ws/comp0244-go2
-colcon build
-source install/setup.bash
-```
-
-##### Step 8: Run the package with running the [FAST-LIO SLAM](https://github.com/hku-mars/FAST_LIO):
-```bash
-ros2 launch go2_config gazebo_mid360.launch.py rviz:=true
-```
-You can obtain ground truth poses (base_link with respect to the world):
-```bash
-ros2 topic echo /odom/ground_truth
-```
-
-**NOTE:** if you change configuration the files such as *.xacro/, *.rviz, ... , please build the package once again:
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-colcon build
-source install/setup.bash
-```
-<!-- More examples are shown in this [repo](https://github.com/COMP0244-S25/unitree-go2-ros2) -->
-
-### Run the [FAST-LIO SLAM](https://github.com/hku-mars/FAST_LIO) (in the docker)
-##### Step 9: Open a second terminal and start your docker environment
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-```
-
-##### Step 10: Run the package
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash 
-ros2 launch fast_lio mapping.launch.py config_file:=unitree_go2_mid360.yaml
-```
-
-##### Step 11: Check FAST-LIO's poses 
-<!-- (body with respect to camera_init) -->
-```bash
-ros2 topic echo /Odometry
-```
-
-### Move the Robot:
-##### Step 12: Open a second terminal and start your docker environment
-```bash
-sudo docker exec -it comp0244_unitree /bin/bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash 
-```
-
-##### Step 13:
-Using your keyboard to move your robot.
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
-
-##### Step 14
-Use your keyboard to move the robot:
-```
-u                           i (move forward)    o 
-j (counterclockwise turn)   k (stop)            l (clockwise turn)
-m                           , (move backward)   .
-```
-
-#### Step 15:
-Instead of Steps 13 and 14, we can move the robot (e.g., stop, move forward, move backward, clock-wise turn, couterwise turn) via commanding the velocity:
-
-##### Turn clockwise
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: -1.0
-' -r 0.5
-```
-##### Turn counter-clockwise
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 1.0
-' -r 0.5
-```
-##### Move backwards
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: -0.3
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 1
-```
-##### Move forward
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.3
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 0.5
-```
-##### Stop moving
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 0.5
-```
-
-## Installation on AppleSilicon
-### Overview
-
-This repository provides an environment that can be run within an virtual environemnt of ARM architecture. The environment is designed to run specific software or tasks, and the following instructions will guide you through installing dependencies, setting up the Docker container, and running the necessary files.
-
----
-
-##### Step 1. Install UTM Virtual Machine
-1. Visit the [UTM Virtual Machine Website](https://mac.getutm.app/).
-2. Download the **free version** of the UTM application (not the App Store version to avoid charges).
-3. Open the downloaded `UTM.dmg` file and follow the installation steps.
-4. Download the 64-bit [ARM Ubuntu 22.04 image](https://cdimage.ubuntu.com/releases/jammy/release/)
-
-##### Step 2. Set up the Ubunutu 22.04 VM: 
-1. Open UTM and click **+** → **Virtualize** → **Linux**.
-2. Allocate:
-   - **Memory**: 2+ GB.
-   - **CPU Cores**: 2+.
-3. Add:
-   - **Primary Disk**: 30+ GB.
-   - **CD/DVD Drive**: Attach the downloaded Ubuntu ISO.
-4. Set the **CD/DVD Drive** as the first boot device under **System**.
-5. Save and click **Play** to boot the VM into the Ubuntu installer.
-6. Follow the installer prompts:
-   - Use the entire disk for installation.
-   - Set a username, password, and hostname.
-   - Enable install of **OpenSSH**
-7. Stop the VM.
-8. Go to **Drives** → Remove the **CD/DVD Drive**.
-9. Save and reboot.
-
----
-##### Step 3. Install Graphics on your VM
-
-1. Update your VM:
-   ```bash
-   sudo apt update && sudo apt upgrade -y
-   ```
-2. Install the graphic interface:
-    ```bash
-    sudo apt install -y xubuntu-desktop
-    ```
-3. When prompted - selected **lightdm**
-4. Reboot your environemnt:
-    ```bash
-    sudo reboot
-    ```
----
-##### Step 4. Set up your SSH key. 
-1.Set SSH key compatible with yout Github account - replace "youremail"
-  ```bash
-   ssh-keygen -t rsa -b 4096 -C “youremail”@youremail.com
-  eval "$(ssh-agent -s)"
-  ssh-add ~/.ssh/id_rsa
-  cat ~/.ssh/id_rsa.pub
-  ```
-2. Copy to GitHub ssh keys:
-   - In your Github acount go to settings and SSH and GPG Keys.
-   - Add a new SSH key and name it "UbunutuVMkey"
-   - Coppy the output of the last command.
-   - sSave entry 
-   
-3. Varify correct setup:
-   ```bash
-   ssh -T git@github.com
-    ```
-  You should see a "Hey, [your Github username]"
-  
-##### Step 5. Install ROS2 humble on your VM
-1: Setup Locale
-Make sure your system locale is set to UTF-8:
+In the same terminal, create the docker container:
 
 ```bash
-sudo apt update && sudo apt install -y locales
-sudo locale-gen en_US en_US.UTF-8
-sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-export LANG=en_US.UTF-8
+sudo docker run -it -e DISPLAY -e QT_X11_NO_MITSHM=1 -e XAUTHORITY=/tmp/.docker.xauth \\
+-v /home/$USER/workspace:/workspace \\
+--network host \\
+--name comp0244_team2 comp0244:unitree-go-ros2-humble /bin/bash
+
 ```
 
----
-
-2: Add the ROS 2 Repository
+Exit the docker and start your docker environment
 
 ```bash
-sudo apt update && sudo apt install -y software-properties-common
-sudo add-apt-repository universe
-sudo apt update && sudo apt install -y curl
-curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | sudo apt-key add -
+sudo docker container start comp0244_team2
+sudo docker exec -it comp0244_team2 /bin/bash
+
 ```
 
-Add the ROS 2 repository to your sources list:
+### ii. GPU Version (Recomended)
+
+Install `docker-compose`.
 
 ```bash
-sudo sh -c 'echo "deb [arch=arm64] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
+sudo apt install docker-compose
+
 ```
 
----
-
-3: Install ROS 2 Humble
-Update your package index and install ROS 2:
+Before starting the docker, check if graphic card driver running properly.
 
 ```bash
+nvidia-smi
+```
+
+Install `nvidia-container-toolkit` to support GPU in docker.
+
+```bash
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L <https://nvidia.github.io/nvidia-docker/gpgkey> | sudo apt-key add -
+curl -s -L <https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list> | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 sudo apt update
-sudo apt install -y ros-humble-desktop
+sudo apt install -y nvidia-container-toolkit
+sudo systemctl restart docker
 ```
 
-For a smaller installation (if you're limited on storage or just need core features):
+Start docker.
 
 ```bash
-sudo apt install -y ros-humble-ros-base
+sudo USER=$(whoami) docker-compose -f comp0244-go2/docker/compose_gpu.yml up -d
+sudo docker exec -it comp0244_nvidia_team2 /bin/bash
 ```
 
----
+## 3. Build Project
 
-4: Environment Setup
-Source the ROS 2 setup file automatically on terminal startup:
+In the same terminal, build the package before running the code.
 
 ```bash
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-source ~/.bashrc
+echo "source /workspace/comp0244-go2/install/setup.bash" >> ~/.bashrc
+source /opt/ros/humble/setup.bash
+cd /workspace/comp0244-go2/src/livox_ros_driver2 && ./build.sh humble
+cd /workspace/comp0244-go2 && colcon build
+source /workspace/comp0244-go2/install/setup.bash
+
 ```
+
+Install additional dependencies (same terminal)
+
+```bash
+apt install ros-humble-tf-transform* -y
+
+```
+
+# Code Executing
+
+> Restart the current container after the first initial container is complete
+> 
+> 
+> ```bash
+> exit
+> sudo docker restart comp0244_nvidia_team2
+> sudo docker exec -it comp0244_nvidia_team2 /bin/bash
+> 
+> ```
+> 
+
+## Task 1
+
+1. Enter the container environment:
+
+```bash
+## CPU Version
+sudo docker exec -it comp0244_team2 /bin/bash
+## GPU Version
+sudo docker exec -it comp0244_nvidia_team2 /bin/bash
+```
+
+1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task_1.launch.py`
+    1. By default, it launches `world_1.world`. To specify a different preset environment or a custom one, please refer to the appendix.
+
+## Task 2
+
+(Terminal #1)
+
+1. Enter the container environment:
+
+```bash
+## CPU Version
+sudo docker exec -it comp0244_team2 /bin/bash
+## GPU Version
+sudo docker exec -it comp0244_nvidia_team2 /bin/bash
+```
+
+1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task_2.launch.py`
+    1. By default, it launches `world_1.world`. To specify a different preset environment or a custom one, please refer to the appendix.
+
+（Terminal #2）
+
+1. Enter the container environment:
+
+```bash
+## CPU Version
+sudo docker exec -it comp0244_team2 /bin/bash
+## GPU Version
+sudo docker exec -it comp0244_nvidia_team2 /bin/bash
+```
+
+1. Pass in Target Waypoint：`ros2 param load /Bug0 src/cw1_team_2/cw1_team_2/config/robot_params_bug0.yaml`
+2. The robot now should start moving
+
+## Task 3
+
+（Terminal #1）
+
+1. Enter container environment
+
+```bash
+## CPU Version
+sudo docker exec -it comp0244_team2 /bin/bash
+## GPU Version
+sudo docker exec -it comp0244_nvidia_team2 /bin/bash
+```
+
+1. Start the launch file: `ros2 launch cw1_team_2 run_solution_task_3.launch.py`
+    1. By default, it launches `world_1.world`. To specify a different preset environment or a custom one, please refer to the appendix.
+
+（Terminal #2）
+
+1. Enter container environment
+
+```bash
+## CPU Version
+sudo docker exec -it comp0244_team2 /bin/bash
+## GPU Version
+sudo docker exec -it comp0244_nvidia_team2 /bin/bash
+```
+
+1. Pass in Target Waypoint：`ros2 param load /Bug0 src/cw1_team_2/cw1_team_2/config/robot_params_bug1.yaml`
+2. The robot now should start moving
+
+> Please note: We have observed significant odometry drift while the robot is moving, which may cause distortion in the determination of the start point and leave point for Bug1. Due to time constraints, we have not looked into the implementation of the `ChampOdometry` class in `unitree-go2-ros2` in detail.
+> 
 
 ---
 
-5: Install Additional Tools (Optional)
-Install `colcon` for building ROS 2 packages:
+# Tasks Implementation
 
-```bash
-sudo apt install -y python3-colcon-common-extensions
-```
+> Here, we will discuss the implementation ideas and details
+> 
 
-Install ROS 2 CLI tools:
+## Task 1
 
-```bash
-sudo apt install -y python3-argcomplete
-```
+### **cw1_edge_follower (edge_follower)**
+
+1. **Handling Sharp Turns**
+
+- **Overshoot Compensation:** The robot moves past the end of the detected line before turning to ensure a smoother transition, controlled by `self.OVERSHOOT = 0.3` meters.
+- **End-Line Lag:** At the end of the path, the robot continues moving in the original direction for one additional step to reduce abrupt turns.
+- **Corner Waypoint Smoothing:** Waypoints near corners are adjusted using a weighted average to prevent sharp turns:
+\text{current_waypoint} = 0.6 \times \text{current_waypoint} + 0.4 \times \text{self.last_waypoint}
+
+2. **Suppressing the "Edge Jumping" Issue**
+
+- A threshold of `self.POINT_THRESHOLD = 0.8` meters ensures stable edge detection.
+- Edge points are updated only if both conditions are met:
+    1. Distance to the last closest point is below the threshold:
+    \text{distance_to_last_time_closest_point} < \text{self.POINT_THRESHOLD}
+    2. Distance to the robot is less than the minimum recorded distance:
+    \text{distance_to_robot} < \text{min_distance}
+
+3. **Determining Counterclockwise Direction**
+
+- **Replaced cross-product calculation with a manually set direction flag:**
+    - The movement direction is now explicitly defined as `self.moving_forward = "counter-clockwise"`.
+    - The previous cross-product method was unreliable due to incorrect vector selection, as it did not account for the robot's orientation. The manually assigned flag ensures correct navigation.
+
+### 4. **Extending Waypoint Information**
+
+- **Adding Direction Information:** Waypoints are expanded from (x,y) to (x,y,θ), where the angle is calculated as:
+\text{edge_angle} = \text{atan2}(\text{edge_direction}[1], \text{edge_direction}[0])
+    
+    (x,y)(x, y)
+    
+    (x,y,θ)(x, y, \theta)
+    
+- **180° Rotation Adjustment:**\text{waypoint} = \left[\text{waypoint}[0], \text{waypoint}[1], \text{edge_angle} + \pi\right]
+- **Visualization Improvement:** Waypoints are now displayed as arrows instead of spheres, making movement direction more intuitive.
+
+**cw1_waypoint_follower (waypoint_follower)**
+
+1. **Modifying `control_loop_callback(self)`**
+
+The original motion logic (turn → move forward → turn) often caused the robot to get stuck when waypoints changed frequently, preventing smooth movement.
+
+2. **New Motion Logic: Continuous Forward Movement with Dynamic Angular Adjustment**
+
+Instead of stopping to turn, the robot now moves forward while adjusting angular velocity in real-time. Special handling is added for:
+
+- **Moving Backward:** If the target is behind the robot with a similar orientation, it moves backward instead of turning in place.
+- **Urgent Turn:** If a large turn is required (>0.4π) and the target is not too close, the robot performs a quick rotation while moving slightly forward.
+
+3. **Standard Navigation & Final Alignment**
+
+For regular movement, the robot maintains maximum velocity while dynamically adjusting its direction. Upon reaching the waypoint, it stops and fine-tunes its orientation before marking arrival
+
+## Task 2
+
+The core idea of the Bug0 algorithm is **to move in a straight line, follow the edge when encountering an obstacle, and continue towards the goal after avoiding the obstacle**. In this implementation, **`AdvancedEdgeFollowerNodes`** acts as a **child node** to **control and manage** the robot, primarily for edge detection and obstacle tracking. The following are the specific steps
+
+1. **Child Node `edge_follower` Initialization and Subscription Management**
+    - `BugPlanner` inherits from `Node` and creates `AdvancedEdgeFollowerNodes` as **a child node** to handle boundary detection.
+    - It subscribes to **`Odometry` and `local_map_lines`** topics, and the message callbacks are handled by the `edge_follower` internal functions `odom_callback()` and `line_callback()`, rather than `BugPlanner` handling them directly.
+2. **Data Acquisition and use `spin_once` to Call Child Node**
+    - During the `move_to_goal()` and `update_data()` processes, `BugPlanner` needs to retrieve the latest sensor information.
+    - Since `edge_follower` runs independently as a child node,`BugPlanner`  **actively triggers the child node to execute** through **`rclpy.spin_once(self.edge_follower)`**to receive the latest obstacle data.
+3. **Path Planning and Obstacle Detection**
+    - `move_to_goal()` calculates the direction to the goal and uses `is_obstacle_detected()` to check for obstacles.
+    - By **calling the child node’s `transform_to_base_link()`**, the target coordinates are transformed to the robot’s coordinate frame for navigation.
+    - If an obstacle is detected, `BugPlanner` pauses its own `timer` and calls `edge_follower` to continue avoiding the obstacle.
+4. **Robot Control and Navigation**
+    - **Once the obstacle is cleared, `timer` is reactivated, and the robot continues moving**.
+    - Navigation commands are published using `Pose2D` via `waypoint_pub` to guide the robot’s movement.
+
+## Task 3
+
+The core idea of the Bug1 algorithm is **to move in a straight line, follow the edge when encountering an obstacle, and continue towards the goal after finding the optimal exit point.** In this implementation, **`AdvancedEdgeFollowerNodes`** is used as a **child node** to **control and manage the process**, primarily for edge detection and obstacle tracking. The following are the specific steps: 
+
+**1. Initialization of Child Node `edge_follower` and Subscription Management**
+
+- `BugPlanner` inherits from `Node` and creates **`AdvancedEdgeFollowerNodes` as a child node**, responsible for boundary detection.
+- It subscribes to **`Odometry` and `local_map_lines`** topics, with message callbacks handled by `odom_callback()` and `line_callback()` inside `edge_follower`, rather than being processed directly by `BugPlanner`.
+
+**2. Data Retrieval and `spin_once` for Child Node Execution**
+
+- During `move_to_goal()` and `update_data()`, `BugPlanner` needs to obtain the latest sensor information.
+- Since `edge_follower` operates **as an independent child node**, `BugPlanner` actively triggers its execution using **`rclpy.spin_once(self.edge_follower)`**, ensuring real-time obstacle information updates.
+
+**3. Path Planning and Obstacle Detection**
+
+- `move_to_goal()` calculates the robot’s direction toward the goal and checks for obstacles using `is_obstacle_detected()`.
+- The goal coordinates are transformed into the robot’s coordinate frame via **a call to the child node's `transform_to_base_link()`**, enabling accurate navigation.
+- If an obstacle is detected, `BugPlanner` suspends its timer with `timer.cancel()`, invokes `edge_follower` to handle obstacle avoidance, and records the **contact point `loop_start_point`** to determine when obstacle circumnavigation is complete.
+
+**4. Recording the Optimal Exit Point During Obstacle Circumnavigation**
+
+- **During obstacle circumnavigation**, `BugPlanner` continuously updates data using `rclpy.spin_once(self.edge_follower)`, identifying the closest position to the goal as `leaving_point`.
+- **After completing a full loop around the obstacle**, if `BugPlanner` finds that `leaving_point` is closer to the goal than `loop_start_point`, it exits from `leaving_point`; otherwise, it continues following the obstacle boundary.
+
+**5. Robot Control and Navigation**
+
+- **Once the obstacle is cleared, `timer` is reactivated, allowing the robot to resume its path.**
+- **Navigation commands are published using `Pose2D` via `waypoint_pub`**, directing the robot toward its target.
 
 ---
 
-##### Step 6. Install Module Repository: 
-Open a terminal and run: 
+# Appendix
+
+## 1. Gazebo Preset Scenes and Loading Custom Scenes
+
+### Regarding the preset Gazebo scenes:
+
+We have prepared several preset Gazebo environments to simplify testing. These scenes are stored in the `src/cw1_team_2/cw1_team_2/environment/` directory. Each scene has been configured with specific object placements and the initial positioning of the **Go2** robot to match different testing requirements.
+
+When using `ros2 launch` to start a task, the default scene, `world_0`, will be loaded. However, you can customize the environment by specifying a different preset world in the command line. This flexibility allows you to test in various environments without modifying the underlying code.
+
+For example, if you want to launch the third preset scene, you can use a command like:
+
 ```bash
-mkdir /home/$USER/comp0244_ws
-cd /home/$USER/comp0244_ws
-git clone --recursive git@github.com:COMP0244-S25/comp0244-go2.git
-```
----
-
-##### Step 7. Test the Virtual Machine
-1. Open a terminal (Terminator) in the virtual machine, or press `Ctrl+Alt+T`.
-2. Run the following command to start Gazebo:
-   ```bash
-   gazebo
-   ```
-3. If it launches successfully you are ready to go!
-4. Navigate to the specified directory for the course environment:
-   ```bash
-   cd comp0244/tutorial_env_go2
-   ```
-5. Source the setup file:
-   ```bash
-   source install/setup.bash
-   ```
-   
-##### Step 8: Run the package with running the [FAST-LIO SLAM](https://github.com/hku-mars/FAST_LIO):
-```bash
-ros2 launch go2_config gazebo_mid360.launch.py rviz:=true
-```
-You can obtain ground truth poses (base_link with respect to the world) in a new terminal:
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash
-ros2 topic echo /odom/ground_truth
+ ros2 launch cw1_team_2 run_solution_task_1.launch.py gazebo_world:=world_3
 ```
 
-**NOTE:** if you change configuration the files such as *.xacro/, *.rviz, ... , please build the package once again:
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-colcon build
-source install/setup.bash
-```
-<!-- More examples are shown in this [repo](https://github.com/COMP0244-S25/unitree-go2-ros2) -->
+> There is no need to recompile the scene! Simply run the following command to load your custom scene: ros2 launch {your_launch_file} gazebo_world:={your_world_name}
+> 
 
-### Run the [FAST-LIO SLAM](https://github.com/hku-mars/FAST_LIO) (in the docker)
-##### Step 9: Open another terminal and source your environment
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash 
-```
+### How to Load a Custom Gazebo Scene
 
-##### Step 10: Run the package
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash 
-ros2 launch fast_lio mapping.launch.py config_file:=unitree_go2_mid360.yaml
-```
+1. Save your custom Gazebo scene as a `.world` file (e.g., `my_gazebo_world.world`).
+2. Place the file in the `src/cw1_team_2/cw1_team_2/environment/` directory.
+3. Rebuild the workspace: `cd /workspace/comp0244-go2/ && colcon build && source install/setup.bash`
+4. Run the task with the custom world:: `ros2 launch cw1_team_2 run_solution_task_1.launch.py gazebo_world:=my_gazebo_world` (Adjust the specific task name and Gazebo world name based on your actual setup)
 
-##### Step 11: Check FAST-LIO's poses 
-<!-- (body with respect to camera_init) -->
-```bash
-ros2 topic echo /Odometry
-```
+Now, you should see Gazebo launch with your custom scene.
 
-### Move the Robot:
-##### Step 12: Open another terminal and source your environment
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash 
-```
+## 2. Run Docker on VSCode.
 
-##### Step 13:
-Using your keyboard to move your robot.
-```bash
-cd /usr/app/comp0244_ws/comp0244-go2
-source install/setup.bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
+1. Enter from VSCode (recommended):
+Launch VSCode ⇒ Open the Docker extension page ⇒ Right-click on `comp0244_nvidia_team2` ⇒ Attach in VSCode.
+    
+    https://github.com/user-attachments/assets/b8355146-cca3-428e-9ff0-3d01c8cdc2e2
+    
 
-##### Step 14
-Use your keyboard to move the robot:
-```
-u                           i (move forward)    o 
-j (counterclockwise turn)   k (stop)            l (clockwise turn)
-m                           , (move backward)   .
-```
+## 3. Passing the Target Waypoint Parameter
 
-#### Step 15:
-Instead of Steps 13 and 14, we can move the robot (e.g., stop, move forward, move backward, clock-wise turn, couterwise turn) via commanding the velocity:
-
-##### Turn clockwise
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: -1.0
-' -r 0.5
-```
-##### Turn counter-clockwise
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 1.0
-' -r 0.5
-```
-##### Move backwards
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: -0.3
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 1
-```
-##### Move forward
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.3
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 0.5
-```
-##### Stop moving
-```bash
-ros2 topic pub /cmd_vel geometry_msgs/Twist '
-linear:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-' -r 0.5
-```
-
-
-
-
-## Attaching to a Running Docker Container in VS Code
-This would allow access to file explorer. 
-
-### Prerequisites
-Before you start, ensure the following are set up:
-
-1. **Docker Installed**: Docker must be installed and running on your machine.
-2. **Visual Studio Code Installed**: Make sure you have VS Code installed.
-3. **Docker Extension**:
-   - Open the Extensions view in VS Code (`Ctrl+Shift+X` or `Cmd+Shift+X` on macOS).
-   - Search for "Docker" and install the extension by Microsoft.
-
-### 1. Open the Docker View
-- Click on the **Docker** icon in the Activity Bar on the left-hand side of VS Code. If this does not exist you can install the Docker Extension from the VScode extensions. 
-
-### 2. Locate Your Running Container
-- Under the **Containers** section, find the container you want to attach to.
-- Running containers will have a green status indicator.
-
-### 3. Attach to the Container
-- Right-click on the container name and choose one of the following options:
-  - **Attach Shell**: Opens a terminal session attached to the container.
-  - **Attach Visual Studio Code**: Opens the container's filesystem as a remote workspace in VS Code.
-
-### 4. Explore Files and Debug
-- If you selected **Attach Visual Studio Code**, the container will open as a remote workspace. You can now:
-  - Browse and edit files within the container.
-  - Use the integrated terminal to run commands in the container.
-
-### Additional Tips
-
-### Restarting a Stopped Container
-If the container is stopped, you can restart it:
-- Right-click on the container in the Docker view and select **Start**.
-
-### Using the Command Palette
-You can also use the Command Palette:
-- Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on macOS).
-- Type and select `Docker: Attach Shell` or `Remote-Containers: Attach to Running Container`.
-
-
-# BSD 3-Clause License
-
-Copyright (c) 2016-2025 Dimitrios Kanoulas
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-
-* Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+1. Path: `src/cw1_team_2/cw1_team_2/config`，which includes `robot_params_bug0.yaml` and `robot_params_bug1.yaml`。
+2. Customizing new Target Waypoint parameters:
+    - set the parameters according to the format in the `.yaml` files.
+3. Waypoint Coordinate System: Ensure that the waypoint coordinates are defined in the correct coordinate system, typically the world or robot base frame, depending on your specific use case.
