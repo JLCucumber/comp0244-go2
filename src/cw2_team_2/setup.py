@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'foot_contact_estimator = cw2_team_2.foot_contact_estimator:main',
+            'foot_contact_estimator = cw2_team_2.task1.foot_contact_estimator:main',
         ],
     },
 )

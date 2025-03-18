@@ -3,6 +3,7 @@ from rclpy.serialization import deserialize_message
 from rosbag2_py import SequentialReader, StorageOptions, ConverterOptions
 import csv
 from unitree_go.msg import LowState, SportModeState  # Correct ROS 2 message type for real robot
+import os
 
 def extract_required_data(bag_path, effort_csv, imu_csv, contacts_csv, contacts_force_csv, timestamp_csv):
     # Initialize ROS 2
@@ -130,11 +131,22 @@ def extract_required_data(bag_path, effort_csv, imu_csv, contacts_csv, contacts_
     rclpy.shutdown()
 
 if __name__ == '__main__':
-    bag_file = "/workspace/CW2_part1_testing_rosbag/output_bag/output_bag_0.db3"  # Replace with actual bag file path
-    effort_csv = "output_effort.csv"  # Joint Efforts
-    imu_csv = "output_imu.csv"  # IMU Data
-    contacts_csv = "output_contacts.csv"  # Foot Contact Data
-    contacts_force_csv = "output_contacts_force.csv"  # Foot Contact Data
-    timestamp_csv = "timestamps.csv"  # Timestamps
+    # datasets/rosbags/rosbag2_2025_03_18-23_32_58/rosbag2_2025_03_18-23_32_58_0.db3
+    # datasets/rosbags/rosbag2_2025_03_18-23_42_57/rosbag2_2025_03_18-23_42_57_0.db3
+    # datasets/rosbags/rosbag2_2025_03_18-23_44_53/rosbag2_2025_03_18-23_44_53_0.db3
+    
+    dataset_dir = "./src/cw2_team_2/dataset"
+    rosbag_name = "rosbag2_2025_03_18-23_32_58"
+    bag_file = f"{dataset_dir}/rosbags/{rosbag_name}/{rosbag_name}_0.db3"  # Replace with actual bag file path
+    output_dir = f"{dataset_dir}/outputs/{rosbag_name}"
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    effort_csv = f"{output_dir}/output_effort.csv"  # Joint Efforts
+    imu_csv = f"{output_dir}/output_imu.csv"  # IMU Data
+    contacts_csv = f"{output_dir}/output_contacts.csv"  # Foot Contact Data
+    contacts_force_csv = f"{output_dir}/output_contacts_force.csv"  # Foot Contact Data
+    timestamp_csv = f"{output_dir}/timestamps.csv"  # Timestamps
 
     extract_required_data(bag_file, effort_csv, imu_csv, contacts_csv, contacts_force_csv, timestamp_csv)
