@@ -39,8 +39,7 @@ class FootContactEstimator:
             
             # 应用滞后法
             predicted = self.hysteresis_fsm(smoothed_torque, leg_idx)
-            contacts.append(bool(predicted))
-        
+            contacts.append(predicted)
         self.csv_writer.writerow([timestamp] + contacts)
 
     def __del__(self):
@@ -48,7 +47,7 @@ class FootContactEstimator:
 
 def main():
     estimator = FootContactEstimator()
-    with open('output_effort.csv', 'r') as f:
+    with open('/workspace/comp0244-go2/datasets/Training/output_effort.csv', 'r') as f:
         reader = csv.reader(f)
         next(reader)  # 跳过标题行
         for row in reader:
