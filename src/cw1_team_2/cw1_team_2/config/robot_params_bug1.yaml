@@ -1,0 +1,17 @@
+/Bug1:
+  ros__parameters:
+    goal_x: 11.0
+    goal_y: -2.0
+    goal_theta: 0.0
+
+# /Bug1:
+#   ros__parameters:
+#     goal_x: 0.0
+#     goal_y: -5.0
+#     goal_theta: 0.0
+
+# /Bug1:
+#   ros__parameters:
+#     goal_x: 8.0
+#     goal_y: -10.0
+#     goal_theta: 0.0
