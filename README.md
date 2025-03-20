@@ -66,9 +66,9 @@ ros2 run waypoint_follower path_follower.py
 ```
 Publish different level of trajectory
 ```bash
-ros2 run waypoint_follower publish_ellipse_shape.py   # easy
-ros2 run waypoint_follower publish_eight_shape.py     # middle
-ros2 run waypoint_follower publish_cosince_shape.py   # hard
+ros2 run waypoint_follower publish_ellipse_shape   # easy
+ros2 run waypoint_follower publish_eight_shape     # middle
+ros2 run waypoint_follower publish_cosince_shape   # hard
 ```
 
 You can add ```/planner/path``` in the RVIZ. You can see the pre-set path (red) and the path (green) traversed by the robot.
@@ -113,7 +113,7 @@ ros2 run waypoint_follower path_follower /utlidar/robot_odom
 Terminal 2:
 ```bash
 source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower publish_eight_shape_path 
+ros2 run waypoint_follower publish_ellipse_shape
 ```
 Terminal 3:
 ```bash
@@ -122,7 +122,7 @@ ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
 ```
 **NOTE**: If you want to try your own state estimation algorithm, please change ```/utlidar/robot_odom``` with your own odometry topic.
 
-**NOTE**: If you want to try your own path planning algorithm, please change ```ros2 run waypoint_follower publish_eight_shape_path``` with your own program and publish the same topic.
+**NOTE**: If you want to try your own path planning algorithm, please change ```ros2 run waypoint_follower path_follower``` with your own program and publish the same topic.
 
 # Lab 5
 ## Real Robot ROS bag Record
