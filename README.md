@@ -40,7 +40,7 @@ mkdir /home/$USER/workspace && cd /home/$USER/workspace
 Clone the repo or extract folder `comp0244-go2` in the workspace. 
 
 ```bash
-git clone --recursive git@github.com:JLCucumber/comp0244-go2.git
+git clone --recursive git@github.com:JLCucumber/comp0244-go2.git -b CW2
 
 ```
 
@@ -108,19 +108,21 @@ In the same terminal, build the package before running the code.
 ```bash
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 echo "source /workspace/comp0244-go2/install/setup.bash" >> ~/.bashrc
-echo "source /workspace/comp0244-go2/unitree_ros2/setup.sh" >> ~/.bashrc
 source /opt/ros/humble/setup.bash
 cd /workspace/comp0244-go2/src/livox_ros_driver2 && ./build.sh humble
 cd /workspace/comp0244-go2 && colcon build
 cd /workspace/comp0244-go2/unitree_ros2/cyclonedds_ws && colcon build --packages-select cyclonedds
 colcon build
 source /workspace/comp0244-go2/install/setup.bash
-source /workspace/comp0244-go2/unitree_ros2/setup.sh
 ```
 
 
-# Code Executing
 
+# Code Executing
+Real Robot Setting Up
+```bash
+source /workspace/comp0244-go2/unitree_ros2/setup.sh
+```
 
 
 ---
