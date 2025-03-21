@@ -34,17 +34,17 @@ source install/setup.bash
 ### Simulation
 ###### 1. Start the simulation
 ```bash
-cd /usr/app/comp0244_ws/tutorial_env_go2
+cd /usr/app/comp0244_ws/cmp0244-go2
 source install/setup.bash
-ros2 launch go2_config gazebo_mid360.launch.py rviz:=true
+ros2 launch go2_config gazebo_mid360.launch.py rviz:=false
 ```
-Run the FAST-LIO
+<!-- Run the FAST-LIO
 ```bash
 cd /usr/app/comp0244_ws/tutorial_env_go2
 source install/setup.bash
 ros2 launch fast_lio mapping.launch.py config_file:=unitree_go2_mid360.yaml
-```
-###### 2. Run the goalpose_follower.py and test whether the robot can move
+``` -->
+<!-- ###### 2. Run the goalpose_follower.py and test whether the robot can move
 ```bash
 cd /usr/app/comp0244_ws/comp0244-go2
 source install/setup.bash
@@ -54,24 +54,25 @@ You can see the arrow (gree) given by the user and the path (green) traversed by
 
 Press ```Ctrl+C``` to stop the goal pose follower.
 
-<img src="media/goalpose_follower.png" alt="goalpose_follower" width="50%">
+<img src="media/goalpose_follower.png" alt="goalpose_follower" width="50%"> -->
 
-###### 3. Run the path_follower.py and test whether the robot can move along a shape
+###### 2. Run the path_follower
 ```bash
 cd /usr/app/comp0244_ws/comp0244-go2
 source install/setup.bash
-rviz2 -d /usr/app/comp0244_ws/comp0244-go2/src/waypoint_follower/rviz/path_following.rviz
-ros2 run waypoint_follower odometry_conversion.py
-ros2 run waypoint_follower path_follower.py
+ros2 launch waypoint_follower path_following.launch.py
 ```
 Publish different level of trajectory
 ```bash
-ros2 run waypoint_follower publish_ellipse_shape.py   # easy
-ros2 run waypoint_follower publish_eight_shape.py     # middle
-ros2 run waypoint_follower publish_cosince_shape.py   # hard
+ros2 run waypoint_follower publish_ellipse_shape   # easy
+ros2 run waypoint_follower publish_eight_shape     # middle
+ros2 run waypoint_follower publish_cosince_shape   # hard
 ```
-
-You can add ```/planner/path``` in the RVIZ. You can see the pre-set path (red) and the path (green) traversed by the robot.
+Once the robot finishes its path, you can see output in the terminal:
+```bash
+[path_follower-3] [INFO] [1742573862.979052993] [path_follower]: ----- All waypoints reached. Stopping. ---- 
+[path_follower-3] [INFO] [1742573862.979052993] [path_follower]: Sum of error: 13.896, Cost time: 27.573s
+```
 
 <img src="media/path_follower.png" alt="path_follower" width="50%">
 
@@ -92,7 +93,7 @@ Terminal 3:
 source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
 ```
-###### 2. Run the goalpose_follower.py and test whether the robot can move
+<!-- ###### 2. Run the goalpose_follower.py and test whether the robot can move
 Terminal 1:
 ```bash
 source /usr/app/comp0244_ws/unitree_ros2/setup.sh
@@ -119,10 +120,10 @@ Terminal 3:
 ```bash
 source /usr/app/comp0244_ws/unitree_ros2/setup.sh
 ros2 run unitree_go2_example forward_cmd_sport_mode_ctrl
-```
+``` -->
 **NOTE**: If you want to try your own state estimation algorithm, please change ```/utlidar/robot_odom``` with your own odometry topic.
 
-**NOTE**: If you want to try your own path planning algorithm, please change ```ros2 run waypoint_follower publish_eight_shape_path``` with your own program and publish the same topic.
+**NOTE**: If you want to try your own path following algorithm, please change ```path_follower.py``` with your own functions.
 
 # Lab 5
 ## Real Robot ROS bag Record
