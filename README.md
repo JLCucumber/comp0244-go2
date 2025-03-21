@@ -114,7 +114,7 @@ ros2 run waypoint_follower path_follower /utlidar/robot_odom
 Terminal 2:
 ```bash
 source /usr/app/comp0244_ws/unitree_ros2/setup.sh
-ros2 run waypoint_follower publish_eight_shape_path 
+ros2 run waypoint_follower publish_ellipse_shape
 ```
 Terminal 3:
 ```bash
