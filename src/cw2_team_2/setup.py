@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'foot_contact_estimator = cw2_team_2.task1.foot_contact_estimator:main',
+            'cw2_goalpose_follower = cw2_team_2.task2.cw2_goalpose_follower:main',
         ],
     },
 )
