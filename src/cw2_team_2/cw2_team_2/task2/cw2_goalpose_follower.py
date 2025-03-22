@@ -201,13 +201,13 @@ class CW2_GoalPoseFollower(Node):
         distance_to_target = math.hypot(error_x, error_y)
 
         #  处理特殊情况 
-        # 1️ 后退情况：目标在机器人后方，且方向相同（error_theta 接近 0）
+        # 1 后退情况：目标在机器人后方，且方向相同（error_theta 接近 0）
         if abs(relative_angle) > math.pi * 0.9:
             twist_msg.linear.x = -min(math.hypot(vx, vy), self.max_velo)  # 直接后退
             twist_msg.angular.z = 0.0  # 方向不变
             self.get_logger().info("Moving Backward")
         
-        # 2️  urgent turn
+        # 2  urgent turn
         elif abs(relative_angle) > math.pi * 0.4 and distance_to_target > 0.1 :  
             twist_msg.linear.x = 0.1  # move forward a little
             twist_msg.linear.y = 0.0  
@@ -215,7 +215,7 @@ class CW2_GoalPoseFollower(Node):
             # self.last_turn_time = self.get_clock().now().nanoseconds
             self.get_logger().info("Urgent Turn")
         
-        # 3️  正常行走逻辑 
+        # 3  正常行走逻辑 
         elif distance_to_target > 0.1:
             twist_msg.linear.x = min(math.hypot(vx, vy), self.max_velo)  # 保持最大速度
             twist_msg.angular.z = min(vtheta, self.max_angle_velo)  # 持续调整方向
