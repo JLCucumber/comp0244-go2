@@ -76,10 +76,11 @@ class CW2_PathFollower(Node):
         self.max_angle_velo = 1.0
 
         # PD Controller Gains (tune as necessary)
-        self.Kp_linear = 1.0
+        self.Kp_linear = 10.0
         self.Kd_linear = 0.1
-        self.Kp_angular = 1.0
+        self.Kp_angular = 5.0
         self.Kd_angular = 0.1
+
 
     # NOTE: CAN CHANGE
     def path_callback(self, msg: Path):
