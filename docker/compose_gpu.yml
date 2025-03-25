@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile_ros2_humble_go2
+      args:
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
     container_name: comp0244_nvidia_team2
     # defined ulimits (for arach-linux)
     ulimits:
@@ -10,6 +13,8 @@ services:
         soft: 524288
         hard: 524288
     network_mode: host
+    ipc: host
+    pid: host    
     privileged: true
     stdin_open: true
     tty: true
