@@ -176,7 +176,7 @@ class PathFollower(Node):
         derivative_x = error_x - self.prev_error_x
         derivative_y = error_y - self.prev_error_y
         derivative_theta = error_theta - self.prev_error_theta
-        self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(error_theta) / 180.0 * math.pi
+        self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(derivative_theta) / 180.0 * math.pi
 
         # 3) PD control for linear velocities (x, y)
         vx = self.Kp_linear * error_x + self.Kd_linear * derivative_x
@@ -228,7 +228,7 @@ class PathFollower(Node):
             
             # 1. urgent rotate
             if abs(error_theta) > 0.5:
-                twist_msg.linear.x = 0.0  # move forward a little
+                twist_msg.linear.x = 0.01  # move forward a little
                 # twist_msg.linear.y = 0.0  
                 twist_msg.angular.z = np.clip(vtheta, -self.max_angular_vel, self.max_angular_vel)  # fast 旋转
                 # self.last_turn_time = self.get_clock().now().nanoseconds
