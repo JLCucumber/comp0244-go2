@@ -199,36 +199,36 @@ class PathFollower(Node):
         # 1) Compute errors
         error_x = x_target - self.current_x
         error_y = y_target - self.current_y
+        error_theta = self.normalize_angle(math.atan2(error_y, error_x)- self.current_orientation)
         try:
             next_target = self.path[self.current_waypoint_index + 1]
             orientation_target = self.normalize_angle(math.atan2(next_target.pose.position.y - y_target, next_target.pose.position.x - x_target))
-            self.get_logger().info(f"Next target: {next_target.pose.position.x}, {next_target.pose.position.y}")
-            self.get_logger().info(f"Current target: {x_target}, {y_target}")
-            self.get_logger().info(f"Orientation target: {orientation_target}")
         except:
             ...
-            orientation_target = self.normalize_angle(math.atan2(error_y, error_x)) # degree
-        error_theta = self.normalize_angle(orientation_target - self.current_orientation) # degree
+            orientation_target = self.normalize_angle(math.atan2(error_y, error_x))
+        error_orientation = self.normalize_angle(orientation_target - self.current_orientation)
         distance_to_waypoint = math.hypot(error_x, error_y)
 
         # 2) Compute derivative of errors
         derivative_x = error_x - self.prev_error_x
         derivative_y = error_y - self.prev_error_y
         derivative_theta = error_theta - self.prev_error_theta
-        self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(derivative_theta) / 180.0 * math.pi
-
+        derivative_orientation = error_orientation - self.prev_error_orientation
+        self.sum_derivate += abs(derivative_x) + abs(derivative_y) + abs(derivative_theta)
+        
         # 3) PD control for linear velocities (x, y)
         vx = self.Kp_linear * error_x + self.Kd_linear * derivative_x
         vy = self.Kp_linear * error_y + self.Kd_linear * derivative_y
 
         # 4) PD control for angular velocity
         vtheta = self.Kp_angular * error_theta + self.Kd_angular * derivative_theta
+        vorientation = self.Kp_angular * error_orientation + self.Kd_angular * derivative_orientation
 
         # 5) Update previous error terms
         self.prev_error_x = error_x
         self.prev_error_y = error_y
         self.prev_error_theta = error_theta
-        # self.prev_error_orientation = error_orientation
+        self.prev_error_orientation = error_orientation
 
         # 6)  计算目标相对于机器人前进方向的角度（范围[-pi, pi]）
         target_angle = math.atan2(error_y, error_x)
@@ -236,6 +236,7 @@ class PathFollower(Node):
 
         # 7) Publish velocity commands
         twist_msg = Twist()
+        distance_to_target = math.hypot(error_x, error_y)
 
         # # Check if the robot has reached the current waypoint
         
@@ -265,19 +266,35 @@ class PathFollower(Node):
             self.get_logger().info(f"Reached waypoint {self.current_waypoint_index - 1}. Moving to the next one.")
         else:
             
-            # 1. urgent rotate
-            if abs(error_theta) > 0.5:
-                twist_msg.linear.x = 0.01  # move forward a little
-                # twist_msg.linear.y = 0.0  
-                twist_msg.angular.z = np.clip(vtheta, -self.max_angular_vel, self.max_angular_vel)  # fast 旋转
+            if abs(relative_angle) > math.pi * 0.9:
+                twist_msg.linear.x = -min(math.hypot(vx, vy), self.max_linear_vel)  # 直接后退
+                twist_msg.angular.z = 0.0  # 方向不变
+                self.get_logger().info("Moving Backward")
+            
+            # 2️  urgent turn
+            elif abs(relative_angle) > math.pi * 0.4 and distance_to_target > 0.1 :  
+                twist_msg.linear.x = 0.1  # move forward a little
+                twist_msg.linear.y = 0.0  
+                twist_msg.angular.z = min(vorientation, self.max_angular_vel)  # fast 旋转
                 # self.last_turn_time = self.get_clock().now().nanoseconds
                 self.get_logger().info("Urgent Turn")
             
-            # 2. 正常行走逻辑 
-            else:
+            # 3️  正常行走逻辑 
+            elif distance_to_target > 0.1:
                 twist_msg.linear.x = min(math.hypot(vx, vy), self.max_linear_vel)  # 保持最大速度
-                twist_msg.angular.z = np.clip(vtheta, -self.max_angular_vel, self.max_angular_vel)  # 持续调整方向
+                twist_msg.angular.z = min(vtheta, self.max_angular_vel)  # 持续调整方向
                 self.get_logger().info("Moving Forward")
+
+            # 4 接近目标时，单独调整方向 
+            else:
+                twist_msg.linear.x = 0.0  # 停止前进
+                if abs(error_orientation) > 0.05:
+                    twist_msg.angular.z = min(vorientation, self.max_linear_vel)
+                    self.get_logger().info(" Rotating to align with final orientation")
+                else:
+                    self.get_logger().info("Arrived at waypoint")
+                    self.is_arrive_waypoint = True
+                    pass
 
         self.cmd_vel_pub.publish(twist_msg)
 
