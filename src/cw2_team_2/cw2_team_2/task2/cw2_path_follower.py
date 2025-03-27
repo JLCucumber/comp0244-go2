@@ -360,21 +360,16 @@ class PathFollower(Node):
             #     # self.last_turn_time = self.get_clock().now().nanoseconds
             #     self.get_logger().info("Urgent Turn")
             
-            if abs(relative_angle) > math.pi * 0.9:
-                twist_msg.linear.x = -min(math.hypot(vx, vy), self.max_linear_vel)  # 直接后退
-                twist_msg.angular.z = 0.0  # 方向不变
-                self.get_logger().info("Moving Backward")
-            
-            # 2️  urgent turn
-            elif abs(relative_angle) > math.pi * 0.4 and distance_to_target > 0.1 :  
-                twist_msg.linear.x = 0.1  # move forward a little
-                twist_msg.linear.y = 0.0  
-                twist_msg.angular.z = min(vorientation, self.max_angular_vel)  # fast 旋转
+            # 1. urgent rotate
+            if abs(error_theta) > 0.5:
+                twist_msg.linear.x = 0.01  # move forward a little
+                # twist_msg.linear.y = 0.0  
+                twist_msg.angular.z = np.clip(vtheta, -self.max_angular_vel, self.max_angular_vel)  # fast 旋转
                 # self.last_turn_time = self.get_clock().now().nanoseconds
                 self.get_logger().info("Urgent Turn")
             
-            # 3️  正常行走逻辑 
-            elif distance_to_target > 0.1:
+            # 2. 正常行走逻辑 
+            else:
                 twist_msg.linear.x = min(math.hypot(vx, vy), self.max_linear_vel)  # 保持最大速度
                 twist_msg.angular.z = np.clip(vtheta, -self.max_urgent_angular_vel, self.max_urgent_angular_vel)  # 持续调整方向
                 self.get_logger().info("Moving Forward")
