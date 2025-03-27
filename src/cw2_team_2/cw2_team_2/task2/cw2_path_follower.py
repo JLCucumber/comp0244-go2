@@ -10,6 +10,7 @@ import time
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import Twist, PoseStamped
 import numpy as np
+from scipy.interpolate import splprep, splev
 
 class PathFollower(Node):
     """
@@ -33,6 +34,7 @@ class PathFollower(Node):
         self.path = None
         self.current_waypoint_index = 0
         self.current_orientation = 0.0
+        self.smooth = True
 
 
         # Previous errors (for derivative term)
@@ -126,7 +128,7 @@ class PathFollower(Node):
     # NOTE: CAN CHANGE
     def setup_parameters(self):
         # Maximum velocities
-        self.max_linear_vel = 1.0  # meter
+        self.max_linear_vel = 1.2  # meter
         self.max_angular_vel = 1.5 # rad
 
         # PD Controller Gains (tune as necessary)
@@ -138,14 +140,43 @@ class PathFollower(Node):
     # NOTE: CAN CHANGE
     def path_callback(self, msg: Path):
         """
-        Updates the target path when a new message is received.
+        Updates the target path when a new message is received, with Bezier/spline interpolation.
         """
-        self.path = msg.poses  # List of PoseStamped messages
+        self.path = msg.poses  # 原始路径：List of PoseStamped
         self.current_waypoint_index = 0  # Reset to the first waypoint
         self.get_logger().info(f"Received new path with {len(self.path)} waypoints.")
         self.start_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         self.end_time = 0
 
+        # 提取 x, y 点坐标
+        x = [pose.pose.position.x for pose in self.path]
+        y = [pose.pose.position.y for pose in self.path]
+
+        # 检查路径点数量
+        if len(x) < 3:
+            self.get_logger().warn("Not enough points for Bezier/spline interpolation.")
+            self.smoothed_path = self.path
+            return
+
+        # 样条拟合曲线（贝塞尔风格平滑）
+        tck, u = splprep([x, y], s=0)
+        u_fine = np.linspace(0, 1, num=int(len(self.path) * 0.75))
+        x_new, y_new = splev(u_fine, tck)
+
+        # 构造新的平滑路径
+        self.smoothed_path = []
+        for i in range(len(x_new)):
+            pose = PoseStamped()
+            pose.header = msg.header
+            pose.pose.position.x = x_new[i]
+            pose.pose.position.y = y_new[i]
+            pose.pose.position.z = 0.0
+            pose.pose.orientation = self.path[0].pose.orientation  # 可选：统一朝向
+            self.smoothed_path.append(pose)
+
+        self.get_logger().info(f"Generated smoothed path with {len(self.smoothed_path)} points.")
+        if self.smooth:
+            self.path = self.smoothed_path
     # NOTE: CAN CHANGE
     def control_loop_callback(self):
         """
