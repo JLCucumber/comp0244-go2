@@ -10,6 +10,8 @@ import time
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import Twist, PoseStamped
 
+from visualization_msgs.msg import Marker, MarkerArray
+from std_msgs.msg import ColorRGBA
 
 class PathFollower(Node):
     """
@@ -73,6 +75,10 @@ class PathFollower(Node):
         self.timer = self.create_timer(timer_period, self.control_loop_callback)
         self.get_logger().info(f"Path Follower node started. Subscribing to odometry topic: {odometry_topic}")
 
+        # Path visualization publishers
+        self.path_pub = self.create_publisher(Path, '/visualized_path', 10)
+        self.marker_pub = self.create_publisher(MarkerArray, '/path_markers', 10)
+
     # NOTE: CANNOT CHANGE
     def normalize_angle(self, angle):
             """
@@ -132,16 +138,93 @@ class PathFollower(Node):
         self.Kp_angular = 1.0
         self.Kd_angular = 0.1
 
+    def visulize_path(self):
+        """
+        Publishes the smoothed path for visualization.
+        """
+        if self.smoothed_path is not None:
+            path_msg = Path()
+            path_msg.header.stamp = self.get_clock().now().to_msg()
+            path_msg.header.frame_id = 'map'
+            path_msg.poses = self.smoothed_path
+            self.path_pub.publish(path_msg)
+            self.get_logger().info(f"Published smoothed path with {len(self.smoothed_path)} points.")   
+    
+    def publish_path_markers(self):
+        """
+        Publishes markers (arrows and text) for each waypoint to RViz.
+        """
+        if self.path is None:
+            return
+
+        marker_array = MarkerArray()
+        for idx, pose_stamped in enumerate(self.path):
+            pos = pose_stamped.pose.position
+
+            # Arrow marker
+            arrow = Marker()
+            arrow.header = pose_stamped.header
+            arrow.ns = "waypoint_arrows"
+            arrow.id = idx
+            arrow.type = Marker.ARROW
+            arrow.action = Marker.ADD
+            arrow.pose = pose_stamped.pose
+            arrow.scale.x = 0.6  # shaft length
+            arrow.scale.y = 0.05
+            arrow.scale.z = 0.05
+            arrow.color = ColorRGBA(r=0.0, g=0.5, b=1.0, a=1.0)  # blue
+            marker_array.markers.append(arrow)
+
+            # Text marker
+            text = Marker()
+            text.header = pose_stamped.header
+            text.ns = "waypoint_labels"
+            text.id = 1000 + idx
+            text.type = Marker.TEXT_VIEW_FACING
+            text.action = Marker.ADD
+            text.pose.position.x = pos.x
+            text.pose.position.y = pos.y
+            text.pose.position.z = 0.3  # Slightly above ground
+            text.scale.z = 0.2  # Font size
+            text.color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)  # red
+            text.text = str(idx)
+            marker_array.markers.append(text)
+
+        self.marker_pub.publish(marker_array)
+        self.get_logger().info("Published waypoint markers.")
+
+
     # NOTE: CAN CHANGE
     def path_callback(self, msg: Path):
         """
         Updates the target path when a new message is received.
         """
         self.path = msg.poses  # List of PoseStamped messages
+ 
         self.current_waypoint_index = 0  # Reset to the first waypoint
         self.get_logger().info(f"Received new path with {len(self.path)} waypoints.")
+
+        for i in range(len(self.path) - 1):
+            current = self.path[i].pose.position
+            next_ = self.path[i + 1].pose.position
+
+            dx = next_.x - current.x
+            dy = next_.y - current.y
+            yaw = math.atan2(dy, dx)
+
+            qz = math.sin(yaw / 2.0)
+            qw = math.cos(yaw / 2.0)
+            self.path[i].pose.orientation.z = qz
+            self.path[i].pose.orientation.w = qw
+
+        if len(self.path) >= 2:
+            self.path[-1].pose.orientation = self.path[-2].pose.orientation
+
         self.start_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         self.end_time = 0
+
+        self.visulize_path()
+        self.publish_path_markers()
 
     # NOTE: CAN CHANGE
     def control_loop_callback(self):
