@@ -54,8 +54,8 @@ class PathFollower(Node):
         self.is_odom_received = False
 
         # Thresholds
-        self.waypoint_threshold = 0.2  # Distance threshold to consider a waypoint reached
-        # self.orientation_threshold = 0.1  # Orientation threshold for final alignment
+        self.waypoint_threshold = 0.05 # Distance threshold to consider a waypoint reached
+        self.orientation_threshold = 0.1  # Orientation threshold for final alignment
         
         # Publisher to cmd_vel
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
@@ -196,8 +196,11 @@ class PathFollower(Node):
         # PD Controller Gains (tune as necessary)
         self.Kp_linear = 1.0
         self.Kd_linear = 0.1
-        self.Kp_angular = 5.0
+        self.Kp_angular = 2.0
         self.Kd_angular = 0.5
+
+        self.Kp_orientation = 5.0
+        self.Kd_orientation = 0.1
 
     # NOTE: CAN CHANGE
     def path_callback(self, msg: Path):
@@ -315,15 +318,17 @@ class PathFollower(Node):
         derivative_y = error_y - self.prev_error_y
         derivative_theta = error_theta - self.prev_error_theta
         derivative_orientation = error_orientation - self.prev_error_orientation
-        self.sum_derivate += abs(derivative_x) + abs(derivative_y) + abs(derivative_theta)
+        self.sum_derivate += abs(derivative_x) + abs(derivative_y) + abs(derivative_theta) / 180*math.pi
         
         # 3) PD control for linear velocities (x, y)
         vx = self.Kp_linear * error_x + self.Kd_linear * derivative_x
         vy = self.Kp_linear * error_y + self.Kd_linear * derivative_y
 
+        self.get_logger().info("vx: %.3f, vy: %.3f" % (vx, vy))
+
         # 4) PD control for angular velocity
         vtheta = self.Kp_angular * error_theta + self.Kd_angular * derivative_theta
-        vorientation = self.Kp_angular * error_orientation + self.Kd_angular * derivative_orientation
+        vorientation = self.Kp_orientation * error_orientation + self.Kd_orientation * derivative_orientation
 
         # 5) Update previous error terms
         self.prev_error_x = error_x
@@ -341,10 +346,10 @@ class PathFollower(Node):
         
         # self.cmd_vel_pub.publish(twist_msg)
         if distance_to_target < self.waypoint_threshold:
-            twist_msg.linear.x = 0.0  # 停止前进
+            # twist_msg.linear.x = 0.0  # 停止前进
 
             if abs(error_orientation) > 0.05:
-                twist_msg.linear.x = 0.05  # move forward a little
+                twist_msg.linear.x = 0.01  # move forward a little
                 twist_msg.angular.z = np.clip(vorientation, -self.max_urgent_angular_vel, self.max_urgent_angular_vel)
                 self.get_logger().info(" Rotating to align with final orientation")
 
@@ -353,16 +358,17 @@ class PathFollower(Node):
         else:
         
             # # 2️  urgent turn
-            # if abs(error_orientation) >  0.4 and distance_to_target <= self.orientation_threshold:
-            #     twist_msg.linear.x = 0.05  # move forward a little
-            #     twist_msg.angular.z = np.clip(vorientation, -self.max_angular_vel, self.max_angular_vel)
-            #     # self.last_turn_time = self.get_clock().now().nanoseconds
-            #     self.get_logger().info("Urgent Turn")
+            if abs(error_orientation) >  0.4 and distance_to_target <= self.orientation_threshold:
+                twist_msg.linear.x = 0.05  # move forward a little
+                twist_msg.angular.z = np.clip(vtheta, -self.max_urgent_angular_vel, self.max_urgent_angular_vel)
+                # self.last_turn_time = self.get_clock().now().nanoseconds
+                self.get_logger().info("Urgent Turn")
             
             # 3️  正常行走逻辑 
             # else:  # distance_to_target > 0.1:
                 twist_msg.linear.x = min(math.hypot(vx, vy), self.max_linear_vel)  # 保持最大速度
-                twist_msg.angular.z = np.clip(vtheta, -self.max_urgent_angular_vel, self.max_urgent_angular_vel)  # 持续调整方向
+                self.get_logger().info("math.hypot(vx, vy): %.3f" % math.hypot(vx, vy))
+                twist_msg.angular.z = np.clip(vtheta, -self.max_angular_vel, self.max_angular_vel)  # 持续调整方向
                 self.get_logger().info("Moving Forward")
                 
         self.cmd_vel_pub.publish(twist_msg)
@@ -374,7 +380,7 @@ def main():
     rclpy.init(args=args)
 
     # Specify the odometry topic (default is '/Odometry')
-    odometry_topic = '/Odometry'  # Default value
+    odometry_topic = '/Odometry'  # Deorientation_targetfault value
     node = PathFollower(odometry_topic)
 
     try:
