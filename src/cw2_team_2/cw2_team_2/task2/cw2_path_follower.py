@@ -199,7 +199,15 @@ class PathFollower(Node):
         # 1) Compute errors
         error_x = x_target - self.current_x
         error_y = y_target - self.current_y
-        orientation_target = self.normalize_angle(math.atan2(error_y, error_x)) # degree
+        try:
+            next_target = self.path[self.current_waypoint_index + 1]
+            orientation_target = self.normalize_angle(math.atan2(next_target.pose.position.y - y_target, next_target.pose.position.x - x_target))
+            self.get_logger().info(f"Next target: {next_target.pose.position.x}, {next_target.pose.position.y}")
+            self.get_logger().info(f"Current target: {x_target}, {y_target}")
+            self.get_logger().info(f"Orientation target: {orientation_target}")
+        except:
+            ...
+            orientation_target = self.normalize_angle(math.atan2(error_y, error_x)) # degree
         error_theta = self.normalize_angle(orientation_target - self.current_orientation) # degree
         distance_to_waypoint = math.hypot(error_x, error_y)
 
