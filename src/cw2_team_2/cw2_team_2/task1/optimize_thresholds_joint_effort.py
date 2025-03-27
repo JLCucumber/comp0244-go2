@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # torque_file = "/workspace/output_effort.csv"
     # contact_file = "/workspace/output_contacts.csv"
     output_dir = "/workspace/comp0244-go2/src/cw2_team_2/dataset/outputs"
-    rosbag_name = "rosbag2_2025_03_18-23_42_57"  # rosbag2_2025_03_18-23_42_57, rosbag2_2025_03_18-23_32_58, rosbag2_2025_03_18-23_44_53
+    rosbag_name = "rosbag2_2025_03_18-23_44_53"  # rosbag2_2025_03_18-23_42_57, rosbag2_2025_03_18-23_32_58, rosbag2_2025_03_18-23_44_53
 
     torque_file = f"{output_dir}/{rosbag_name}/output_effort.csv"
     contact_file = f"{output_dir}/{rosbag_name}/output_contacts.csv"

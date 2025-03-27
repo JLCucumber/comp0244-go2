@@ -1,102 +1,135 @@
-import pandas as pd
+import torch
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import torch.nn as nn
+import torch.optim as optim
 
-def hysteresis_fsm(torque_data, tau_down, tau_up):
-    """滞后状态机实现"""
-    predicted_states = []
-    current_state = 0  # 初始为 flight
-    for torque in torque_data:
-        if current_state == 0 and torque > tau_up:
-            current_state = 1
-        elif current_state == 1 and torque < tau_down:
-            current_state = 0
-        predicted_states.append(current_state)
-    return np.array(predicted_states)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def optimize_acc_threshold(imu_file, contact_file):
-    imu_data = pd.read_csv(imu_file)
-    contact_data = pd.read_csv(contact_file)
-    
-    imu_time = imu_data.iloc[:, 0].to_numpy()
-    contact_time = contact_data.iloc[:, 0].to_numpy()
-    
-    acc_x = imu_data.iloc[:, 8].to_numpy()
-    acc_y = imu_data.iloc[:, 9].to_numpy()
-    acc_z = imu_data.iloc[:, 10].to_numpy()
-    acc_magnitude = np.sqrt(acc_x**2 + acc_y**2 + acc_z**2)
-    
-    aligned_acc = np.interp(contact_time, imu_time, acc_magnitude)
-    contact_states = contact_data.iloc[:, 1:5].to_numpy()  # 4 条腿的接触状态
-    
-    thresholds_dict = {}
-    foot_names = ["Leg0", "Leg1", "Leg2", "Leg3"]
-    
-    plt.figure(figsize=(12, 8))
-    for leg_idx in range(4):
-        leg_contact = contact_states[:, leg_idx].astype(int)
-        
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.modelname = 'lstm'
+        self.input_size = 10       # IMU 数据有 10 个特征
+        self.hidden_size = 84
+        self.num_layers = 2
+        self.batch_size = 8
+        self.batch_length = 1000   # 每个序列长度为 1000
+        self.output_size = 4       # 预测 4 个 contact 值
+        self.input_data = []
+        self.output_data = []
 
-        ### Original
-        # min_acc, max_acc = acc_magnitude.min(), acc_magnitude.max()
-        # thresholds = np.linspace(min_acc, max_acc, 20)
-        # best_acc = 0
-        # best_threshold = 0
-        
-        # for threshold in thresholds:
-        #     predicted = (aligned_acc > threshold).astype(int)
-        #     accuracy = np.mean(predicted == leg_contact)
-        #     if accuracy > best_acc:
-        #         best_acc = accuracy
-        #         best_threshold = threshold
-        
-        ### Grid Search (Hysteresis FSM version)
-        min_acc, max_acc = acc_magnitude.min(), acc_magnitude.max()
-        thresholds = np.linspace(max(0, min_acc), max_acc, 20)  # 强制从 0 开始
-        best_acc = 0
-        best_tau_down, best_tau_up = 0, 0
-        best_pred = None
+        # LSTM 层与线性层
+        self.lstm = nn.LSTM(input_size=self.input_size,
+                            hidden_size=self.hidden_size,
+                            num_layers=self.num_layers,
+                            batch_first=True).to(device)
+        self.fc = nn.Linear(self.hidden_size, self.output_size).to(device)
 
-        for i in range(len(thresholds)):
-            for j in range(i + 1, len(thresholds)):
-                tau_down, tau_up = thresholds[i], thresholds[j]
-                predicted = hysteresis_fsm(aligned_acc, tau_down, tau_up)
-                acc = np.mean(predicted == leg_contact)
-                if acc > best_acc:
-                    best_acc = acc
-                    best_tau_down, best_tau_up = tau_down, tau_up
-                    best_pred = predicted
-        
-        # print(f"{foot_names[leg_idx]} - Best Accuracy: {best_acc * 100:.2f}%, Best acc_threshold: {best_threshold:.3f}")   # original 
-        print(f"{foot_names[leg_idx]} - Best Accuracy: {best_acc * 100:.2f}%, tau_down: {best_tau_down:.3f}, tau_up: {best_tau_up:.3f}")
-        
-        # thresholds_dict[foot_names[leg_idx]] = best_threshold
-        
-        plt.subplot(2, 2, leg_idx + 1)
-        plt.plot(contact_time, aligned_acc, 'k', label="IMU Acceleration Magnitude")
-        plt.plot(contact_time, leg_contact, 'r', label="Ground Truth")
-        plt.plot(contact_time, best_pred.astype(int), 'b', label="Predicted")
-        plt.axhline(best_tau_down, linestyle="--", color="blue", label="tau_down")
-        plt.axhline(best_tau_up, linestyle="--", color="red", label="tau_up")
-        plt.xlabel("Time (s)")
-        plt.ylabel("Acceleration Magnitude (m/s^2)")
-        plt.title(f"{foot_names[leg_idx]}: Acceleration vs. Threshold")
-        plt.legend()
-    
-    plt.show()
-    plt.tight_layout()
-    plt.savefig(f"{output_dir}/{rosbag_name}/imu_thresholds_plot.png")
-    print(f"Thresholds plot saved to {output_dir}/{rosbag_name}/imu_thresholds_plot.png")
-    
-    return thresholds_dict
+        self.optimizer = optim.AdamW(self.parameters(), lr=0.0001)
+        self.criterion = nn.MSELoss()
+        self.output_norm = 1.0  # 如果 contact 是 0/1 则不归一化
 
-if __name__ == "__main__":
-    output_dir = "/workspace/comp0244-go2/src/cw2_team_2/dataset/outputs"
-    rosbag_name = "rosbag2_2025_03_18-23_44_53"  # rosbag2_2025_03_18-23_42_57, rosbag2_2025_03_18-23_32_58
+    def forward(self, input_seq):
+        # input_seq: (batch, seq_len, input_size)
+        h0 = torch.zeros(self.num_layers, input_seq.size(0), self.hidden_size).to(device)
+        c0 = torch.zeros(self.num_layers, input_seq.size(0), self.hidden_size).to(device)
+        out, _ = self.lstm(input_seq, (h0, c0))  # out: (batch, seq_len, hidden_size)
+        out = self.fc(out)  # (batch, seq_len, output_size)
+        return out
 
-    imu_file = f"{output_dir}/{rosbag_name}/output_imu.csv"
-    contact_file = f"{output_dir}/{rosbag_name}/output_contacts.csv"
+    def load_train_data(self, input_array, output_array, num_samples=5):
+        self.input_data = []
+        self.output_data = []
+        for _ in range(num_samples):
+            idx = np.random.randint(0, input_array.shape[0] - self.batch_length)
+            input_seq = input_array[idx:idx + self.batch_length]
+            output_seq = output_array[idx:idx + self.batch_length]
+            self.input_data.append(input_seq)
+            self.output_data.append(output_seq)
 
-    thresholds = optimize_acc_threshold(imu_file, contact_file)
-    for leg, threshold in thresholds.items():
-        print(f"{leg}: Optimized acc_threshold: {threshold:.3f}")
+    def train_simple(self, num_iterations=1000):
+        self.train()
+        for j in range(num_iterations):
+            for batch in range(len(self.input_data) // self.batch_size):
+                # 构造一个 batch
+                batch_input = self.input_data[batch * self.batch_size:(batch + 1) * self.batch_size]
+                batch_output = self.output_data[batch * self.batch_size:(batch + 1) * self.batch_size]
+
+                input_nn = torch.tensor(batch_input, dtype=torch.float32).to(device)
+                output_nn = torch.tensor(batch_output, dtype=torch.float32).to(device) / self.output_norm
+
+                output_pred = self.forward(input_nn)
+
+                loss = self.criterion(output_pred, output_nn)
+                if torch.isnan(loss):
+                    print("Loss is nan")
+                    breakpoint()
+                else:
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
+
+                if j % 100 == 0 and batch == 0:
+                    print(f"[Iter {j:4d}] Loss: {loss.item():.6f}")
+
+    def predict(self, input_seq):
+        self.eval()
+        with torch.no_grad():
+            input_tensor = torch.tensor(input_seq, dtype=torch.float32).to(device)
+            if input_tensor.dim() == 2:
+                input_tensor = input_tensor.unsqueeze(0)  # 增加 batch 维度
+            output_pred = self.forward(input_tensor)
+            return output_pred.squeeze(0).cpu().numpy() * self.output_norm  # 返回序列
+
+
+# 数据预处理
+def prepare_data(imu_file, contact_file):
+    imu_df = pd.read_csv(imu_file)
+    contact_df = pd.read_csv(contact_file)
+
+    imu_df['timestamp'] = pd.to_numeric(imu_df['timestamp'], errors='coerce')
+    contact_df['timestamp'] = pd.to_numeric(contact_df['timestamp'], errors='coerce')
+
+    imu_df = imu_df.sort_values('timestamp')
+    contact_df = contact_df.sort_values('timestamp')
+
+    merged_df = pd.merge_asof(imu_df, contact_df, on='timestamp', direction='nearest', tolerance=1e6)
+    merged_df = merged_df.interpolate(method='linear').dropna()
+
+    imu_data = merged_df[['orientation_x', 'orientation_y', 'orientation_z', 'orientation_w',
+                          'angular_vel_x', 'angular_vel_y', 'angular_vel_z',
+                          'linear_acc_x', 'linear_acc_y', 'linear_acc_z']].values
+    contact_data = merged_df[['contact_1', 'contact_2', 'contact_3', 'contact_4']].values
+
+    print(f"对齐后的数据长度: {len(imu_data)}")
+    return imu_data, contact_data
+
+
+if __name__ == '__main__':
+    # 修改为你的数据路径
+    imu_file = '/workspace/ROSBag1/output_imu.csv'
+    contact_file = '/workspace/ROSBag1/output_contacts.csv'
+
+    input_data, output_data = prepare_data(imu_file, contact_file)
+
+    if len(input_data) < 1000:
+        raise ValueError("数据长度不足 1000，无法生成训练序列！")
+
+    net = Net()
+    print(net)
+
+    num_samples = min(16, (len(input_data) - net.batch_length) // net.batch_length)
+    net.load_train_data(input_data, output_data, num_samples=num_samples)
+    print(f"加载了 {len(net.input_data)} 个输入序列用于训练")
+
+    net.train_simple(num_iterations=1000)
+
+    test_input = input_data  # 测试输入
+    pred = net.predict(test_input)
+
+    print("预测结果：", pred)
+    print("预测形状：", pred.shape)
+
+    torch.save(net.state_dict(), 'lstm_model.pth')
+    print("模型已保存为 'lstm_model.pth'")
