@@ -21,3 +21,7 @@ RUN apt update
 RUN apt install -y ros-${ROS_DISTRO}-gazebo-*
 RUN apt install -y ros-${ROS_DISTRO}-tf-transform*
 RUN apt install -y ros-${ROS_DISTRO}-rosidl-generator-dds-idl
+
+# Install python3-pip and scipy
+RUN apt install -y python3-pip
+RUN pip3 install scipy

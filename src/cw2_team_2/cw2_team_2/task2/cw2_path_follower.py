@@ -34,6 +34,10 @@ class PathFollower(Node):
         self.current_waypoint_index = 0
         self.current_orientation = 0.0
 
+        # Derivative terms
+        self.derivative_x_array = []
+        self.derivative_y_array = []
+        self.derivative_theta_array = []
 
         # Previous errors (for derivative term)
         self.prev_error_x = 0.0
@@ -176,7 +180,11 @@ class PathFollower(Node):
         derivative_x = error_x - self.prev_error_x
         derivative_y = error_y - self.prev_error_y
         derivative_theta = error_theta - self.prev_error_theta
-        self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(error_theta) / 180.0 * math.pi
+        self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(derivative_theta) / 180.0 * math.pi
+
+        self.derivative_x_array.append(derivative_x)
+        self.derivative_y_array.append(derivative_y)
+        self.derivative_theta_array.append(derivative_theta)
 
         # 3) PD control for linear velocities (x, y)
         vx = self.Kp_linear * error_x + self.Kd_linear * derivative_x
@@ -197,21 +205,6 @@ class PathFollower(Node):
 
         # 7) Publish velocity commands
         twist_msg = Twist()
-
-        # # Check if the robot has reached the current waypoint
-        
-        # if distance_to_waypoint < self.waypoint_threshold:
-        #     self.current_waypoint_index += 1  # Move to the next waypoint
-        #     self.get_logger().info(f"Reached waypoint {self.current_waypoint_index - 1}. Moving to the next one.")
-        # else:
-        #     # Move toward the current waypoint
-        #     if abs(error_theta) > 1.0 and distance_to_waypoint > self.waypoint_threshold:
-        #         twist_msg.angular.z = min(vtheta, self.max_angular_vel)
-        #         self.get_logger().info("Rotating before moving forward")
-        #     else:
-        #         twist_msg.linear.x = min(math.hypot(vx, vy), self.max_linear_vel)
-        #         twist_msg.angular.z = min(vtheta, self.max_angular_vel)
-        #         self.get_logger().info("Moving forward")
 
         # self.cmd_vel_pub.publish(twist_msg)
         distance_to_target = math.hypot(error_x, error_y)
