@@ -73,7 +73,31 @@ predictions = {}
 for contact, model in rf_models.items():
     predictions[contact] = model.predict(new_X)
 
-# 9. Save prediction results
+# # 9. Load ground truth data and align it to new_contacts_data timestamps
+# ground_truth_data = pd.read_csv('/workspace/comp0244-go2/datasets/Testing/output_contacts.csv')  # 读取 ground truth 数据
+# ground_truth_ts = ground_truth_data['timestamp'].values
+
+# # Align ground truth to new_contacts_data timestamps
+# aligned_ground_truth = {}
+# for contact in ['contact_1', 'contact_2', 'contact_3', 'contact_4']:
+#     aligned_ground_truth[contact] = nearest_neighbor_align(
+#         new_contacts_ts, ground_truth_ts, ground_truth_data[contact]
+#     )
+
+# # Construct aligned ground truth DataFrame
+# ground_truth_labels = pd.DataFrame(aligned_ground_truth)
+# ground_truth_labels = ground_truth_labels.astype(int)  # Ensure labels are integers
+
+# # 10. Compare predictions with ground truth
+# for contact in ['contact_1', 'contact_2', 'contact_3', 'contact_4']:
+#     true_labels = ground_truth_labels[contact]
+#     pred_labels = predictions[contact]
+#     print(f"\nResults for {contact}:")
+#     print(f"Accuracy: {accuracy_score(true_labels, pred_labels)}")
+#     print("Classification Report:")
+#     print(classification_report(true_labels, pred_labels))
+
+# 11. Save prediction results
 pred_df = pd.DataFrame(predictions)
 pred_df.insert(0, 'timestamp', new_contacts_data['timestamp'])  # Use new_contacts_data timestamps
 pred_df.to_csv('/workspace/comp0244-go2/src/cw2_team_2/cw2_team_2/task1/predicted_contacts.csv', index=False)
