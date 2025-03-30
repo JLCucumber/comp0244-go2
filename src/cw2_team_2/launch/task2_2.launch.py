@@ -33,12 +33,10 @@ def generate_launch_description():
             output='screen'
         ),
 
-        # Path follower node
         Node(
             package='cw2_team_2',
-            executable='cw2_path_follower_baseline',
+            executable='cw2_path_follower_2',
             name='path_follower',
             output='screen'
         )
-
     ])

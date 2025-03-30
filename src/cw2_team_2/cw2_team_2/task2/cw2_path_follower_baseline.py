@@ -76,7 +76,6 @@ class PathFollower(Node):
         self.get_logger().info(f"Path Follower node started. Subscribing to odometry topic: {odometry_topic}")
 
         # Path visualization publishers
-        self.path_pub = self.create_publisher(Path, '/visualized_path', 10)
         self.marker_pub = self.create_publisher(MarkerArray, '/path_markers', 10)
 
     # NOTE: CANNOT CHANGE
@@ -138,17 +137,33 @@ class PathFollower(Node):
         self.Kp_angular = 1.0
         self.Kd_angular = 0.1
 
-    def visulize_path(self):
-        """
-        Publishes the smoothed path for visualization.
-        """
-        if self.smoothed_path is not None:
-            path_msg = Path()
-            path_msg.header.stamp = self.get_clock().now().to_msg()
-            path_msg.header.frame_id = 'map'
-            path_msg.poses = self.smoothed_path
-            self.path_pub.publish(path_msg)
-            self.get_logger().info(f"Published smoothed path with {len(self.smoothed_path)} points.")   
+    def compute_traj_error(self):
+        ################################## Error Computation
+        # NOTE: path error is defined as real_path_length / perfect_path_length
+        ideal_path_length = 0.0
+        for i in range(len(self.path) - 1):
+            wp1 = self.path[i].pose.position
+            wp2 = self.path[i + 1].pose.position
+            dx = wp2.x - wp1.x
+            dy = wp2.y - wp1.y
+            ideal_path_length += math.hypot(dx, dy)
+        # Update total path length
+        if not hasattr(self, 'previous_x'):
+            self.previous_x = self.current_x
+            self.previous_y = self.current_y
+        else:
+            dx = self.current_x - self.previous_x
+            dy = self.current_y - self.previous_y
+            self.sum_path_derivate += math.hypot(dx, dy)
+            self.previous_x = self.current_x
+            self.previous_y = self.current_y
+        duration = time.time() - self.start_time
+        if ideal_path_length > 0:
+            self.sum_derivate = self.sum_path_derivate / ideal_path_length
+        else:
+            self.sum_derivate = 0.0
+        self.get_logger().info(f"Sum of error: {self.sum_derivate:.3f}, Cost time: {duration:.3f}s.")
+ 
     
     def publish_path_markers(self):
         """
@@ -169,10 +184,10 @@ class PathFollower(Node):
             arrow.type = Marker.ARROW
             arrow.action = Marker.ADD
             arrow.pose = pose_stamped.pose
-            arrow.scale.x = 0.6  # shaft length
-            arrow.scale.y = 0.05
-            arrow.scale.z = 0.05
-            arrow.color = ColorRGBA(r=0.0, g=0.5, b=1.0, a=1.0)  # blue
+            arrow.scale.x = 0.2  # shaft length
+            arrow.scale.y = 0.01
+            arrow.scale.z = 0.01
+            arrow.color = ColorRGBA(r=0.0, g=0.5, b=1.0, a=1.0)  # green
             marker_array.markers.append(arrow)
 
             # Text marker
@@ -185,11 +200,11 @@ class PathFollower(Node):
             text.pose.position.x = pos.x
             text.pose.position.y = pos.y
             text.pose.position.z = 0.3  # Slightly above ground
-            text.scale.z = 0.2  # Font size
+            text.scale.z = 0.05  # Font size
             text.color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)  # red
             text.text = str(idx)
             marker_array.markers.append(text)
-
+            
         self.marker_pub.publish(marker_array)
         self.get_logger().info("Published waypoint markers.")
 
@@ -200,10 +215,9 @@ class PathFollower(Node):
         Updates the target path when a new message is received.
         """
         self.path = msg.poses  # List of PoseStamped messages
- 
         self.current_waypoint_index = 0  # Reset to the first waypoint
         self.get_logger().info(f"Received new path with {len(self.path)} waypoints.")
-
+        self.sum_path_derivate = 0
         for i in range(len(self.path) - 1):
             current = self.path[i].pose.position
             next_ = self.path[i + 1].pose.position
@@ -222,8 +236,6 @@ class PathFollower(Node):
 
         self.start_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         self.end_time = 0
-
-        self.visulize_path()
         self.publish_path_markers()
 
     # NOTE: CAN CHANGE
@@ -255,7 +267,8 @@ class PathFollower(Node):
         derivative_x = error_x - self.prev_error_x
         derivative_y = error_y - self.prev_error_y
         derivative_theta = error_theta - self.prev_error_theta
-        self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(derivative_theta) / 180.0 * math.pi
+        self.compute_traj_error()
+        # self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(derivative_theta) / 180.0 * math.pi
 
         # 3) PD control for linear velocities (x, y)
         vx = self.Kp_linear * error_x + self.Kd_linear * derivative_x

@@ -45,7 +45,7 @@ class PathFollower(Node):
         self.prev_error_x = 0.0
         self.prev_error_y = 0.0
         self.prev_error_theta = 0.0
-        self.prev_error_orientation = 0.0   # ADD 
+        self.prev_error_orientation = 0.0
 
 
         # Robot current state
@@ -55,7 +55,7 @@ class PathFollower(Node):
 
         # Thresholds
         self.waypoint_threshold = 0.1  # Distance threshold to consider a waypoint reached
-        self.orientation_threshold = 0.05  # Orientation threshold for final alignment 
+        self.orientation_threshold = 0.05  # Orientation threshold for final alignment
         
         # Publisher to cmd_vel
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
@@ -77,7 +77,8 @@ class PathFollower(Node):
             10
         )
 
-        # ADD: Path visualization publishers
+        # Path visualization publishers
+        # self.path_pub = self.create_publisher(Path, '/visualized_path', 10)
         self.marker_pub = self.create_publisher(MarkerArray, '/path_markers', 10)
 
         # Timer to periodically publish velocity commands
@@ -128,6 +129,18 @@ class PathFollower(Node):
         
         return False 
 
+    # def visulize_path(self):
+    #     """
+    #     Publishes the smoothed path for visualization.
+    #     """
+    #     if self.smoothed_path is not None:
+    #         path_msg = Path()
+    #         path_msg.header.stamp = self.get_clock().now().to_msg()
+    #         path_msg.header.frame_id = 'world'
+    #         path_msg.poses = self.smoothed_path
+    #         self.path_pub.publish(path_msg)
+    #         self.get_logger().info(f"Published smoothed path with {len(self.smoothed_path)} points.")   
+    
     def publish_path_markers(self):
         """
         Publishes markers (arrows and text) for each waypoint to RViz.
@@ -171,12 +184,14 @@ class PathFollower(Node):
         self.marker_pub.publish(marker_array)
         self.get_logger().info("Published waypoint markers.")
 
+
     # NOTE: CAN CHANGE
     def setup_parameters(self):
         # Maximum velocities
         self.max_linear_vel = 1.2  # meter
         self.max_angular_vel = 1.5 # rad
         self.max_urgent_angular_vel = 3.0 # rad
+        self.counter = 0
 
 
         # PD Controller Gains (tune as necessary)
@@ -185,64 +200,33 @@ class PathFollower(Node):
         self.Kp_angular = 5.0
         self.Kd_angular = 0.5
 
-    def compute_traj_error(self):
-        ################################## Error Computation
-        # NOTE: path error is defined as real_path_length / perfect_path_length
-        ideal_path_length = 0.0
-        for i in range(len(self.path) - 1):
-            wp1 = self.path[i].pose.position
-            wp2 = self.path[i + 1].pose.position
-            dx = wp2.x - wp1.x
-            dy = wp2.y - wp1.y
-            ideal_path_length += math.hypot(dx, dy)
-        # Update total path length
-        if not hasattr(self, 'previous_x'):
-            self.previous_x = self.current_x
-            self.previous_y = self.current_y
-        else:
-            dx = self.current_x - self.previous_x
-            dy = self.current_y - self.previous_y
-            self.sum_path_derivate += math.hypot(dx, dy)
-            self.previous_x = self.current_x
-            self.previous_y = self.current_y
-        duration = time.time() - self.start_time
-        if ideal_path_length > 0:
-            self.sum_derivate = self.sum_path_derivate / ideal_path_length
-        else:
-            self.sum_derivate = 0.0
-        self.get_logger().info(f"Sum of error: {self.sum_derivate:.3f}, Cost time: {duration:.3f}s.")
-
     # NOTE: CAN CHANGE
     def path_callback(self, msg: Path):
         """
         Updates the target path when a new message is received, with Bezier/spline interpolation.
         """
-        self.path = msg.poses  # Original Path: List of PoseStamped
+        self.path = msg.poses  # 原始路径：List of PoseStamped
         self.current_waypoint_index = 0  # Reset to the first waypoint
         self.get_logger().info(f"Received new path with {len(self.path)} waypoints.")
         self.start_time = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
         self.end_time = 0
-
         self.sum_path_derivate = 0
-
-        # Extract x and y coordinates from the path
+        # 提取 x, y 点坐标
         x = [pose.pose.position.x for pose in self.path]
         y = [pose.pose.position.y for pose in self.path]
 
-        # Perform Bezier/spline interpolation
+        # 检查路径点数量
         if len(x) < 3:
             self.get_logger().warn("Not enough points for Bezier/spline interpolation.")
             self.smoothed_path = self.path
             return
 
-        # Use scipy's spline interpolation
+        # 样条拟合曲线（贝塞尔风格平滑）
         # tck, u = splprep([x, y], s=0)
         # u_fine = np.linspace(0, 1, num=int(len(self.path) ))
         # x_new, y_new = splev(u_fine, tck)
-
         x_new, y_new = x, y
-
-        # construct smoothed path
+        # 构造新的平滑路径
         # self.smoothed_path = []
         # for i in range(len(x_new)):
         #     pose = PoseStamped()
@@ -255,7 +239,7 @@ class PathFollower(Node):
         self.smoothed_path = []
         for i in range(len(x_new)):
             pose = PoseStamped()
-            pose.header.frame_id = 'world'  # specify the frame_id
+            pose.header.frame_id = 'world'  # ✅ 显式指定坐标系
             pose.header.stamp = self.get_clock().now().to_msg()
             pose.pose.position.x = x_new[i]
             pose.pose.position.y = y_new[i]
@@ -289,7 +273,32 @@ class PathFollower(Node):
         # self.visulize_path()
         self.publish_path_markers()
 
-
+    def compute_traj_error(self):
+        ################################## Error Computation
+        # NOTE: path error is defined as real_path_length / perfect_path_length
+        ideal_path_length = 0.0
+        for i in range(len(self.path) - 1):
+            wp1 = self.path[i].pose.position
+            wp2 = self.path[i + 1].pose.position
+            dx = wp2.x - wp1.x
+            dy = wp2.y - wp1.y
+            ideal_path_length += math.hypot(dx, dy)
+        # Update total path length
+        if not hasattr(self, 'previous_x'):
+            self.previous_x = self.current_x
+            self.previous_y = self.current_y
+        else:
+            dx = self.current_x - self.previous_x
+            dy = self.current_y - self.previous_y
+            self.sum_path_derivate += math.hypot(dx, dy)
+            self.previous_x = self.current_x
+            self.previous_y = self.current_y
+        duration = time.time() - self.start_time
+        if ideal_path_length > 0:
+            self.sum_derivate = self.sum_path_derivate / ideal_path_length
+        else:
+            self.sum_derivate = 0.0
+        self.get_logger().info(f"Sum of error: {self.sum_derivate:.3f}, Cost time: {duration:.3f}s.")
 
     # NOTE: CAN CHANGE
     def control_loop_callback(self):
@@ -306,7 +315,7 @@ class PathFollower(Node):
 
         # Convert quaternion to yaw (theta) for the target orientation
         q = target_pose.orientation
-        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+        siny_cosp = 2.0 * (q.w5 * q.z + q.x * q.y)
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         orientation_target = math.atan2(siny_cosp, cosy_cosp)
 
@@ -333,7 +342,7 @@ class PathFollower(Node):
         derivative_theta = error_theta - self.prev_error_theta
         # self.sum_derivate += math.fabs(derivative_x) + math.fabs(derivative_y) + math.fabs(derivative_theta) / 180.0 * math.pi
         self.compute_traj_error()
-
+        
         derivative_orientation = error_orientation - self.prev_error_orientation
         
         # 3) PD control for linear velocities (x, y)
@@ -360,15 +369,19 @@ class PathFollower(Node):
         
         # self.cmd_vel_pub.publish(twist_msg)
         if distance_to_target < self.waypoint_threshold:
-            twist_msg.linear.x = 0.0  # 停止前进
+            # twist_msg.linear.x = 0.0  # 停止前进
 
-            if abs(error_orientation) > 0.05:
+            if self.counter <= 6 and abs(error_orientation) > 0.05:
                 twist_msg.linear.x = 0.05  # move forward a little
                 twist_msg.angular.z = np.clip(vorientation, -self.max_urgent_angular_vel, self.max_urgent_angular_vel)
                 self.get_logger().info(" Rotating to align with final orientation")
-
-            self.current_waypoint_index += 1  # Move to the next waypoint
-            self.get_logger().info(f"Reached waypoint {self.current_waypoint_index - 1}. Moving to the next one.")
+                self.counter += 1
+            else: # self.counter > 6 or abs(error_orientation) < 0.01:
+                self.current_waypoint_index += 1
+                self.counter = 0
+                # self.current_waypoint_index += 1  # Move to the next waypoint
+                self.get_logger().info(f"Reached waypoint {self.current_waypoint_index - 1}. Moving to the next one.")
+            
         else:
         
             # # 2️  urgent turn
