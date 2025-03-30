@@ -153,6 +153,40 @@ The code implements a **Random Forest classifier** to predict contact states of 
 - Stores the predicted contact states in a CSV file (`predicted_contacts.csv`) for further analysis.  
 
 
+## Task 2
+
+We implement two path tracking algorithms. In 'cw2_path_follower', we pre-computed the waypoint orientation to make each waypoint's orientation point to the next one (i.e. orientation of point i = [i] -> [i+1]). In 'cw2_path_follower_2', we added an additional counter to allow the robot to do full rotation. All three algorithms, including the baseline version, are added a visualization function for better observation. 
+
+
+(terminal 1) 
+```bash
+colcon build
+source install/setup.bash
+ros2 launch go2_config gazebo_mid360.launch.py rviz:=false
+```
+
+(terminal 2)
+```bash
+source install/setup.bash
+
+ros2 launch cw2_team_2 task2_baseline.launch.py   # baseline path tracking algorithm
+ros2 launch cw2_team_2 task2.launch.py            # customized algorithm 1
+ros2 launch cw2_team_2 task2_2.launch.py          # customized algorithm 2
+```
+
+(terminal 3)
+```bash
+source install/setup.bash
+
+ros2 run waypoint_follower publish_ellipse_shape   # ellipse path
+ros2 run waypoint_follower publish_eight_shape     # eight shape path
+ros2 run waypoint_follower publish_cosince_shape   # cosince shape path
+```
+
+
+## Real Platform Deploymentation
+
+To Be Done tomorrow
 
 # Appendix
 
