@@ -183,6 +183,9 @@ ros2 run waypoint_follower publish_eight_shape     # eight shape path
 ros2 run waypoint_follower publish_cosince_shape   # cosince shape path
 ```
 
+Table of Path Tracking Performance:
+
+
 
 ## Real Platform Deploymentation
 
