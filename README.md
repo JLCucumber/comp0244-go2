@@ -6,7 +6,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Hongbo Li (Code)
 - Yiyang Jia (Code)
-- Xinyun Mo (Testing)
+- Xinyun Mo (Task1)
 
 # Contribution  (Time & Percentage)
 
@@ -18,9 +18,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
   Implemented Bug0 and Bug1 algorithum and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.
 
-- Xinyun Mo  (Task1(10h) + Task2(10h) + Task3 (10h)) => 30 Hours in total
+- Xinyun Mo  (Task1(30h)) => 30 Hours in total
 
-  Testing the pipeline, responsible for refining report.
+  ROS bag data extraction and analysis, comparing different algorithms (FSM, Neural Network, and Random Forest) for predicting the quadruped robot’s contact states.
 
 # Environment Set-up
 
@@ -127,6 +127,31 @@ source /workspace/comp0244-go2/unitree_ros2/setup.sh
 
 ---
 
+# Tasks Implementation
+
+> Here, we will discuss the implementation ideas and details
+
+## Task 1
+
+The code implements a **Random Forest classifier** to predict contact states of a robot using **IMU (Inertial Measurement Unit) data** and **effort (motor torque) data**.  
+
+### 1. Data Loading & Preprocessing  
+- Reads **IMU, effort, and contact state data** from CSV files.  
+- Merges IMU and effort data based on timestamps to create the feature dataset.  
+- Aligns contact state data using **nearest neighbor matching** to ensure timestamp consistency.  
+
+### 2. Feature Extraction & Model Training  
+- The feature matrix (`X`) is obtained from IMU and effort data, while labels (`y`) correspond to contact states (`contact_1` to `contact_4`).  
+- Missing values are handled by filling with zeros.  
+- Trains a **Random Forest classifier** for each contact state.  
+
+### 3. Prediction on Test Data  
+- Loads new test data and aligns features with contact state timestamps.  
+- Uses the trained models to predict contact states for the test dataset.  
+
+### 4. Saving Predictions  
+- Stores the predicted contact states in a CSV file (`predicted_contacts.csv`) for further analysis.  
+
 
 
 # Appendix
@@ -138,4 +163,3 @@ Launch VSCode ⇒ Open the Docker extension page ⇒ Right-click on `comp0244_nv
     
     https://github.com/user-attachments/assets/b8355146-cca3-428e-9ff0-3d01c8cdc2e2
     
-
