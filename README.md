@@ -208,6 +208,7 @@ ros2 run waypoint_follower publish_cosince_shape   # cosince shape path
 
 Table of Path Tracking Performance:
 
+![task2_results](https://github.com/user-attachments/assets/6a51d66a-88b6-4471-8105-ca7e399b84a8)
 
 
 # Appendix
