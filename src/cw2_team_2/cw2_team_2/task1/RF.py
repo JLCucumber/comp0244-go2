@@ -73,8 +73,8 @@ predictions = {}
 for contact, model in rf_models.items():
     predictions[contact] = model.predict(new_X)
 
-# # 9. Load ground truth data and align it to new_contacts_data timestamps
-# ground_truth_data = pd.read_csv('/workspace/comp0244-go2/datasets/Testing/output_contacts.csv')  # 读取 ground truth 数据
+# 9. Load ground truth data and align it to new_contacts_data timestamps
+# ground_truth_data = pd.read_csv('/workspace/comp0244-go2/datasets/Testing/output_contacts.csv')
 # ground_truth_ts = ground_truth_data['timestamp'].values
 
 # # Align ground truth to new_contacts_data timestamps
