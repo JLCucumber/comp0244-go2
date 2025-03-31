@@ -125,7 +125,12 @@ source /workspace/comp0244-go2/unitree_ros2/setup.sh
 
 ## Task 1
 
-The code implements a **Random Forest classifier** to predict contact states of a robot using **IMU (Inertial Measurement Unit) data** and **effort (motor torque) data**.  
+The code implements a **Random Forest classifier** to predict contact states of a robot using **IMU (Inertial Measurement Unit) data** and **effort (motor torque) data**. 
+To run the scripts, 
+```
+cd /workspace/comp0244-go2/src/cw2_team_2/cw2_team_2/task1
+python3 RF.py
+```
 
 ### 1. Data Loading & Preprocessing  
 - Reads **IMU, effort, and contact state data** from CSV files.  
@@ -148,6 +153,7 @@ The code implements a **Random Forest classifier** to predict contact states of 
 - By uncommenting **Step 9** and **Step 10** in the code, you can enable a comparison between the predicted contact states (saved in `predicted_contacts.csv`) and the ground truth data extracted from a testing ROSbag.
 - We conducted an experiment using our own collected ROSbag data to evaluate the performance of the Random Forest classifier on a new dataset. The results showed that the model achieves an accuracy of approximately **99%** for predicting the contact state of each leg (`contact_1` to `contact_4`). The detailed classification reports, including precision, recall, and F1-score for each contact state, are provided in the output logs (as shown in the screenshot above).
 
+![Evaluation](https://github.com/user-attachments/assets/e00a774a-d75e-4f69-969f-b31fa490f231)
 
 ## Task 2
 
