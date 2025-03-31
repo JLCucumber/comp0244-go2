@@ -10,17 +10,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 # Contribution  (Time & Percentage)
 
-- Hongbo Li (Task1(30h) + Task2(12.5h) + Task3 (12.5h)) => 55 Hours in total
-
-  Implemented Edge Following algorithum adjusting Waypoint Follower and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.  
-
-- Yiyang Jia  (Task1(10h) + Task2(20h) + Task3 (20h)) => 50 Hours in total
-
-  Implemented Bug0 and Bug1 algorithum and launch files, testing and fixing bugs in all three tasks, drafting of report and README file.
-
+- Hongbo Li (Task2(30h)) => 30 Hours in total
+- Yiyang Jia  (Task2(30h) => 30 Hours in total
 - Xinyun Mo  (Task1(30h)) => 30 Hours in total
-
-  ROS bag data extraction and analysis, comparing different algorithms (FSM, Neural Network, and Random Forest) for predicting the quadruped robot’s contact states.
 
 # Environment Set-up
 
