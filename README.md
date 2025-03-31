@@ -10,8 +10,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 # Contribution  (Time & Percentage)
 
-- Hongbo Li (Task2(30h)) => 55 Hours in total
-- Yiyang Jia  (Task2(30h) => 50 Hours in total
+- Hongbo Li (Task2(30h)) => 30 Hours in total
+- Yiyang Jia  (Task2(30h) => 30 Hours in total
 - Xinyun Mo  (Task1(30h)) => 30 Hours in total
 
 # Environment Set-up
