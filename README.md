@@ -122,6 +122,7 @@ source /workspace/comp0244-go2/unitree_ros2/setup.sh
 # Tasks Implementation
 
 > Here, we will discuss the implementation ideas and details
+> You can find image and video results in `image_and_videos` folder
 
 ## Task 1
 
@@ -208,10 +209,6 @@ ros2 run waypoint_follower publish_cosince_shape   # cosince shape path
 Table of Path Tracking Performance:
 
 
-
-## Real Platform Deploymentation
-
-To Be Done tomorrow
 
 # Appendix
 
