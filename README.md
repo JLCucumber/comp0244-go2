@@ -6,7 +6,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Hongbo Li (Code)
 - Yiyang Jia (Code)
-- Xinyun Mo (Task1)
+- Xinyun Mo (Code)
 
 # Contribution  (Time & Percentage)
 
