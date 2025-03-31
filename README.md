@@ -150,7 +150,11 @@ The code implements a **Random Forest classifier** to predict contact states of 
 - Uses the trained models to predict contact states for the test dataset.  
 
 ### 4. Saving Predictions  
-- Stores the predicted contact states in a CSV file (`predicted_contacts.csv`) for further analysis.  
+- Stores the predicted contact states in a CSV file (`predicted_contacts.csv`) for further analysis. 
+
+### 5. Evaluation and Comparison with Ground Truth
+- By uncommenting **Step 9** and **Step 10** in the code, you can enable a comparison between the predicted contact states (saved in `predicted_contacts.csv`) and the ground truth data extracted from a testing ROSbag.
+- We conducted an experiment using our own collected ROSbag data to evaluate the performance of the Random Forest classifier on a new dataset. The results showed that the model achieves an accuracy of approximately **99%** for predicting the contact state of each leg (`contact_1` to `contact_4`). The detailed classification reports, including precision, recall, and F1-score for each contact state, are provided in the output logs (as shown in the screenshot above).
 
 
 ## Task 2
