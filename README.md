@@ -125,7 +125,11 @@ source /workspace/comp0244-go2/unitree_ros2/setup.sh
 
 ## Task 1
 
-The code implements a **Random Forest classifier** to predict contact states of a robot using **IMU (Inertial Measurement Unit) data** and **effort (motor torque) data**. 
+### Data extraction from rosbag
+To process the ROSBag data, change `dataset_dir` and `rosbag_name` to your own path before running `extract_data_real_robot.py`
+After executing `extract_data_real_robot.py`, the output csv files should appeared in `{dataset_dir}/outputs/{rosbag_name}`
+
+The code `RF.py` implements a **Random Forest classifier** to predict contact states of a robot using **IMU (Inertial Measurement Unit) data** and **effort (motor torque) data**. 
 To run the scripts：
 ```
 cd /workspace/comp0244-go2/src/cw2_team_2/cw2_team_2/task1
